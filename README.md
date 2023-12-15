@@ -1,6 +1,6 @@
 # Build Sheets
 ___
-This will hold build sheets on setting up following:
+This will hold build sheets on setting up the following:
 - Various servers
 - PLC controllers
 - Data acquisition and protocol converter devices
