@@ -3,7 +3,7 @@ Ensure that the latest package is downloaded with respect to the OS platform the
 The site token will register the machine to the correct site, so verify the correct site token matches the site the machine
 will join before installing SentinelOne. 
 ___
-# Linux Machines Install
+## Linux Machines Install
 1. The latest SentinelOne package can be verified and downloaded from the web management console:  
    ![](./img/sentinels_packages.png)  
 2. The site token can be viewed and copied by clicking on the correct site:  
@@ -41,7 +41,7 @@ ___
 
       
 ___
-# Windows Machines
+## Windows Machines
 Will update this section at a later time.
 ___
 ## Uninstalling SentinelOne Agent
@@ -50,3 +50,13 @@ ___
       ```shell
       sudo /opt/sentinelone/bin/sentinelctl control uninstall --passphrase "string" [--output] [--unquarantine]
       ```
+      Replace the passphrase which can be found under the endpoint name using the web management console 
+      with the `string` word but remember to keep the double quotes, see the image below for finding the passphrase:  
+      ![](./img/sentinel_passphrase.png)  
+      Uninstall from the web management console using the following image as reference:  
+      ![](./img/sentinel_uninstall_web_console.png)  
+   2. If the machine is not removed (decommissioned) from the Sentinels Endpoint List then remove it manually using the 
+      web management console refer to the image below for reference:  
+      ![](./img/sentinel_decommission.png)
+2. Windows Machines:  
+      
