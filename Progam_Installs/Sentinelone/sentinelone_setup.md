@@ -16,11 +16,11 @@ ___
    ```shell
    sudo mkdir -p /mnt/scada/nas
    ```
-5. Allow full permissions (read, write, execute) for the owner, group and others using a similar command to the following
+5. Allow full permissions (read, write, execute) for the owner, group and others using a similar command to the following:
    ```shell
    sudo chmod 777 /mnt/scada/nas
    ```
-6. Check that the correct nfs share is available on the NFS server using a similar command to the following:
+6. Check that the correct NFS share is available on the NFS server using a similar command to the following:
    ```shell
    showmount -e cnas-01.research.pemo
    ```
@@ -28,24 +28,33 @@ ___
    ```shell
    sudo mount -t nfs cnas-01.research.pemo:/volume1/scada /mnt/scada/nas
    ```
-8. Change directories to the location where the files and shell script are located using a similar command to the following
+8. Change directories to the location where the files and shell script are located using a similar command to the following:
    ```shell
-   sudo cd /mnt/scada/nas/..../....
+   sudo cd /mnt/scada/nas/program_install_files/sentinel_one
    ```
-9. If denied access to the nfs share then change owner of the directory using a similar command to the following:
+   If denied access to the NFS share then change owner of the directory using a similar command to the following:
    ```shell
    sudo chown <user or user:group> /mnt/scada/nas
    ```
-10. Open up the SentinelOne web management console and verify the machine joined the site:
+9. Once in the `SentinelOne` directory execute the shell script `sentinelone_linux_agent_install.sh` using the following command:  
+   ```shell
+   sudo ./sentinelone_linux_agent_install.sh
+   ```
+   Ensure that the latest package from step 1 is in the directory and that the shell script contains the correct path
+   to the latest package and site token (with respect to the site that the machine will join).
+   Use the following command to open the shell script, if necessary:  
+   ```shell
+   sudo nano sentinelone_linux_agent_install.sh
+   ```
+10. Open up the SentinelOne web management console and verify the machine joined the site:  
     ![](./img/sentinels_endpoints.png)  
 
-      
 ___
 ## Windows Machines
 Will update this section at a later time.
 ___
 ## Uninstalling SentinelOne Agent
-1. Linux Machines:
+1. #### Linux Machines:
    1. Use the following methods to uninstall SentinelOne:
       ```shell
       sudo /opt/sentinelone/bin/sentinelctl control uninstall --passphrase "string" [--output] [--unquarantine]
@@ -57,6 +66,6 @@ ___
       ![](./img/sentinel_uninstall_web_console.png)  
    2. If the machine is not removed (decommissioned) from the Sentinels Endpoint List then remove it manually using the 
       web management console refer to the image below for reference:  
-      ![](./img/sentinel_decommission.png)
-2. Windows Machines:  
+      ![](./img/sentinel_decommission.png)  
+2. #### Windows Machines:  
       
