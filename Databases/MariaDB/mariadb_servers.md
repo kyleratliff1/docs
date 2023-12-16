@@ -3,32 +3,28 @@ ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
     `https://Your-Servers-IP-Address:8006/` 
 2. If a base MariaDB template (`base-mdb-template`) is available right click and clone the VM template and set the following settings below, if not continue in `this` section to step 3:  
-   ```json 
-   {
-   Mode: Full Clone, 
-   Target Storage: Same as source, 
-   Name: mdb-XX (where XX is the server number being created), 
-   Resource Pool: None, 
-   Format: QEMU image format
-   }
-   ```
+   > Mode = Full Clone  
+   > Target Storage = Same as source  
+   > Name = mdb-XX (where XX is the server number being created)  
+   > Resource Pool = None  
+   > Format = QEMU image format  
+
    > If a migration is needing to be performed to another PROXMOX node then perform the migration first before modifying or starting the virtual machine. 
+
    1. Jump to the `Creating MariaDB Nodes` section.
    2. Jump to step 5 in `this` section.
 3. If a base ubuntu template (`base-ubuntu-template`) is available right click and clone the VM template and set the following settings below, if not continue in `this` section to step 4:
-   ```json
-   {
-   Mode: Full Clone, 
-   Target Storage: Same as source, 
-   Name: base-mdb-template, 
-   Resource Pool: None, 
-   Format: QEMU image format
-   VM ID: <next_available_number_in_the_thousands>
-   }
-   ```
+
+   > Mode = Full Clone  
+   > Target Storage = Same as source  
+   > Name = base-mdb-template  
+   > Resource Pool = None  
+   > Format = QEMU image format  
+   > VM ID = <next_available_number_in_the_thousands>  
+   
    1. Jump to the `Create MariaDB VM Template` section.
    2. Jump to step 2 in `this` section.
-4. If no base Ubuntu template is available then see the `base-ubuntu build sheet` document which should be in the `scada` filesystem which is on the research `cnas` drive.
+4. If no base Ubuntu template is available then see the `base-ubuntu build sheet` document which should be located under the `scada` share on the research `NAS`.
    1. Jump to step 3 in `this` section.
 5. Jump to the `Deploy Galera Cluster` section.
 6. Jump to the `Deploy Galera Arbitrator` section.
@@ -41,14 +37,16 @@ Create the MariaDB VM template on `pm-01`, convert the VM to a template, and lea
 When creating new VMs that need to be under different PROXMOX nodes (pm-01, pm-02, ...pm-XX) perform a full clone of the MariaDB template,
 and then initiate a migration to the necessary PROXMOX node.
 ___
-1. Set the hardware settings:  
-   ```json
-   {
-    Memory:{Memory (MiB): 65536, Minimum memory (MiB): 2048, Shares: Default, Ballooning Device: True},
-    Processors: {Sockets: 2, Cores: 8}
-   }
-   ```
-   ![](img/mariadb_template_hardware_settings.png)
+1. Set the parameters for the hardware settings to the values below:
+   > Memory (MiB) = 65536  
+   > Minimum memory (MiB) = 2048  
+   > Shares = Default  
+   > Ballooning Device = True  
+   > Processors Sockets = 2  
+   > Processors Cores = 8  
+
+   See the image below from modifying the hardware parameter settings from above.  
+   ![](img/mariadb_template_hardware_settings.png)  
 2. Update the hostname from `baseubuntu` to `mdb-template` using the following command:
    ```shell
    sudo nano /etc/hostname
@@ -63,7 +61,7 @@ ___
    sudo dbus-uuidgen --ensure=/etc/machine-id
    sudo dbus-uuidgen --ensure
    ```
-   Use the cat command to verify the machine ID in both files which should be the same:
+   Use the `cat` command to verify the machine ID in both files which should be the same:
    ```shell
    cat /etc/machine-id
    cat /var/lib/dbus/machine-id
@@ -102,24 +100,24 @@ ___
     sudo apt-get install mariadb-server galera-4 mariadb-client libmariadb3 mariadb-backup mariadb-common
     ```
 12. If prompted to select which daemon services should be restarted, then accept the defaults selections.
-13. Secure the installation and answer the command prompt questions using the below command:
+13. Secure the installation and answer the command prompt questions using the below command:  
     ```shell
     sudo mariadb-secure-installation
-    ```
-    You will then be prompted with the below questions:
-    > Switch to unix_socket authentication: n  
-      Change the root password: Y (<one_rich_cat_one_extra_rich_cat>)  
-      Remove anonymous users: Y  
-      Disallow root login remotely: Y  
-      Remove test database and access to it: Y 
-      Reload privilege tables now: Y 
+    ```  
+    You will then be prompted with the below questions:  
+   > Switch to unix_socket authentication: **n**  
+   > Change the root password: **Y** (**<one_rich_cat_one_extra_rich_cat>**)   
+   > Remove anonymous users: **Y**  
+   > Disallow root login remotely: **Y**    
+   > Remove test database and access to it: **Y**   
+   > Reload privilege tables now: Y  
 
     You can also change the password for the superuser root by issuing the below command:
     ```shell
     sudo mariadb u root
     ```
     Initiate the following query after being placed in the MariaDB interactive shell:  
-    > MariaDB[(none)] > SET PASSWORD FOR 'root'@localhost = PASSWORD("<one_rich_cat_one_extra_rich_cat>");  
+    > MariaDB[(none)] > SET PASSWORD FOR 'root'@localhost = PASSWORD("<**one_rich_cat_one_extra_rich_cat**>");  
 14. Configure the base galera-related settings by issuing the below command:  
     ```shell
     sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
@@ -334,18 +332,26 @@ ___
         ```shell 
         mkdir /mnt/sql-data
         ```
-     10. Type the command `blkid`, copy the UUID of the new file system, and edit the file system table configuration file using the command below:   
+     10. Type the command `blkid`, copy the UUID of the new file system, and edit the file system table configuration 
+         file using the command below:  
          ```shell 
          nano /etc/fstab
          ```
          The UUID of the new file system to copy should look similar to the image below:  
          ![](img/fstab_config_file.png)  
-         Copy the text below and place the text at the end of the file system table configuration file:       
+         Copy the text below and place the text at the end of the file system table configuration file:  
          ```text
          UUID="<UUID_NUMBER_OF_FILE_SYSTEM>" /mnt/sql-data ext4 defaults 0 1 
          ```
-     11. Type the command `mount -a` to mount the additional filesystem that was added to the `/etc/fstab `file and `df -Th` to display the filesystem type in a human-readable format.  
-     12. Reboot the machine and then enter the command `df -Th` to verify the filesystem mounts on boot up.  
+     11. Type the following command  to mount the additional filesystem that was added to the `/etc/fstab `file:    
+         ```shell
+         mount -a
+         ```
+         Display the filesystem type in a human-readable format using the following command:    
+         ```shell
+         df -Th
+         ```
+         Reboot the machine and use the same command above to verify the filesystem mounts on boot up.  
 13. Edit the MariaDB server configuration file `/etc/mysql/mariadb.conf.d/50-server.cnf` using the following command:  
     ```shell 
     sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
@@ -412,21 +418,77 @@ ___
        ```
        `<user_in_ad_domain>` - is a user who has privileges in the AD domain to add a computer.  
     4. Enable and restart the `winbind` service to start up automatically at boot using the following commands:
-        ```shell
+       ```shell
        sudo systemctl enable winbind
        ```
        ```shell
        sudo systemctl restart winbind
        ```
        Verify that `winbind` service established a connection to the active directory domain by running the command below:
-         ```shell
+       ```shell
        sudo wbinfo -u
        ```
        This command will return a list of users from the domain that is connected via `winbind`.  
 
     5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
-21. Repeat steps 1 - 19 above for every MariaDB server node created.
-22. Jump to step 5 in the  `MariaDB Server Node and Cluster Setup` section.
+21. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
+    will explain how to install `SentinelOne` by mounting a NAS (network attached storage) device then accessing the install files
+    on the NAS. There are other methods for installation along with uninstalling, and upgrading `SentinelOne`, if any
+    other method is needed then see the `SentinelOne` setup document that's under a PEMO Site Automation GitHub repository.  
+    1. Check that the latest `SentinelOne` package is on the research scada share if not then you can download the last package
+       then replace the existing package, see the image below on finding the latest package on the web management console:  
+       ![](./img/sentinels_packages.png)  
+    2. Make note and verify the site token for the site that the machine will join, the site token for a site can be found using
+       the following image for reference, click the site to find the site token:  
+       ![](./img/settings_sites.png)  
+    3. Install the network file system packages if not already installed using the following command:   
+       ```shell
+       sudo apt install nfs-common
+       ```
+    4. Create a NFS directory on the local machine to share using a similar command to the following:  
+       ```shell
+       sudo mkdir -p /mnt/scada/nas
+       ```
+    5. Allow full permissions (read, write, execute) for the owner, group and others using a similar command to the following:  
+       ```shell
+       sudo chmod 777 /mnt/scada/nas
+       ```
+    6. Check that the correct NFS share is available on the NFS server using a similar command to the following:  
+       ```shell
+       showmount -e cnas-01.research.pemo
+       ```
+       If the NFS share is not available then check the following on the NAS:  
+       - Ensure the share folder is created.  
+       - Check the location of the share folder.  
+       - Check the NFS permission rules.  
+       - See step 5 under `Deploy Galera Arbitrator` section for more solutions.  
+
+    7. Mount the external NFS share on machine using a similar command to the following:  
+       ```shell
+       sudo mount -t nfs cnas-01.research.pemo:/volume1/scada /mnt/scada/nas
+       ```
+    8. Change directories to the location where the files and shell script are located using a similar command to the following:  
+       ```shell
+       sudo cd /mnt/scada/nas/program_install_files/sentinel_one
+       ```
+       If denied access to the NFS share then change owner of the directory using a similar command to the following:  
+       ```shell
+       sudo chown <user or user:group> /mnt/scada/nas
+       ```
+    9. Once in the `SentinelOne` directory execute the shell script `sentinelone_linux_agent_install.sh` using the following command:  
+       ```shell
+       sudo ./sentinelone_linux_agent_install.sh
+       ```
+       Ensure that the latest packages from step 1 is in the directory and that the shell script contains the correct path 
+       to the latest package and site token (with respect to the site that the machine will join).
+       Use the following command to open the shell script, if necessary:  
+       ```shell
+       sudo nano sentinelone_linux_agent_install.sh
+       ```
+    10. Open up the `SentinelOne` web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
+        ![](./img/sentinels_endpoints.png)  
+22. Repeat steps 1 - 19 above for every MariaDB server node created.  
+23. Jump to step 5 in the  `MariaDB Server Node and Cluster Setup` section.  
 ___
 
 ## Deploy Galera Cluster  
@@ -607,15 +669,24 @@ ___
    7 7 * * * root garbd --cfg /etc/garbd.cnf
    ```
    The crontab expression above is as followed:  
-   - `7 7 * * * *` (minute (0-59), hour (0-23), day of month (1-31), month (1-12), day of the week (0-7)), "*" is a wildcard that stands for "any", run at 7:07 AM everyday
+   - `7 7 * * *` 
+     - minute (0-59) 
+     - hour (0-23) 
+     - day of month (1-31) 
+     - month (1-12)
+     - day of the week (0-7)
+     - "*" is a wildcard that stands for "any"
+     - The expression runs at 7:07 AM every day
    - `root` indicates the user that the cron job should be run as. 
    - `garbd --cfg /etc/garbd.cnf` start the galera arbitrator daemon with the `garbd.cnf` configuration file.  
    
+   Check the image below on how the text should be placed in the crontab file:  
+   ![](img/crontab_config_file.png)  
    Restart the cron service using the command below:  
    ```shell
    sudo systemctl restart cron
    ```
-8. Jump to step 7 in the `MariaDB Server Node and Cluster Setup` section.
+8. Jump to step 7 in the `MariaDB Server Node and Cluster Setup` section.  
 ___
 
 ## Create MariaDB Backup Node  
