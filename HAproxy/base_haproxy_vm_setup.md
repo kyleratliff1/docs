@@ -223,13 +223,13 @@ ___
     }
     }
     ```
-    The configuration file will need to be created and the following parameters will change per active/standby pair:  
-    > lvs_id  
-    > state  
-    > interface - Interface parameter may or may not change check the interface name being used.  
-    > virtual_router_id  
-    > priority  
-    > virtual_ipaddress  
+    The configuration file will need to be created and the following parameters will change per active/standby pair:
+   > lvs_id
+   > state  
+   > interface - Interface parameter may or may not change check the interface name being used.  
+   > virtual_router_id  
+   > priority  
+   > virtual_ipaddress  
     
     Don't start the keepalived service, make sure it's stop using the following command:
     ```shell
