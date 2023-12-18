@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebResourcesPaths">
+    <contentEntries>
+      <entry url="file://$PROJECT_DIR$">
+        <entryData>
+          <resourceRoots>
+            <path value="file://$PROJECT_DIR$/Opto22" />
+            <path value="file://$PROJECT_DIR$/Crestron" />
+            <path value="file://$PROJECT_DIR$/Databases" />
+            <path value="file://$PROJECT_DIR$/Alcon" />
+            <path value="file://$PROJECT_DIR$/HMI_Setups" />
+            <path value="file://$PROJECT_DIR$/Deliverables" />
+            <path value="file://$PROJECT_DIR$/Pandoc" />
+            <path value="file://$PROJECT_DIR$/Progam_Installs" />
+            <path value="file://$PROJECT_DIR$/VFDs" />
+          </resourceRoots>
+        </entryData>
+      </entry>
+    </contentEntries>
+  </component>
+</project>
