@@ -54,39 +54,40 @@ ___
    sudo apt-get upgrade
    ```
 10. If prompted to select which daemon services should be restarted, then accept the defaults selections.  
-11. Add and install the HAProxy repository, target package, and hard dependencies using the following command:   
-   ```shell
-   apt-get install --no-install-recommends software-properties-common
-   ```
-   Add the vbernat/haproxy-2.8 PPA (Personal Package Archive) to the systems software repositories:  
-   ```shell
-   add-apt-repository ppa:vbernat/haproxy-2.8
-   ```
-   Install haproxy package in the 2.8.x range or greater:  
-   ```shell
-   apt-get install haproxy=2.8.\*
-   ```
-   Note: if there exist a newer **LTS** only version past 2.8 then simply replace 2.8 with the latest **LTS** version.  
-12. Setup the base Active Directory settings:  
+11. Add and install the HAProxy repository, target package, and hard dependencies using the following command:  
+    ```shell
+    apt-get install --no-install-recommends software-properties-common
+    ```
+    Add the vbernat/haproxy-2.8 PPA (Personal Package Archive) to the systems software repositories:  
+    ```shell
+    add-apt-repository ppa:vbernat/haproxy-2.8
+    ```
+    Install haproxy package in the 2.8.x range or greater:  
+    ```shell
+    apt-get install haproxy=2.8.\*
+    ```
+    Note: if there exist a newer **LTS** only version past 2.8 then simply replace 2.8 with the latest **LTS** version.  
+
+12. Setup the base Active Directory settings:
     1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
        ```shell
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
        ```
        When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:   
-       ![](img/default_kerberos_realm.png)   
-    2. Update the hosts file with the active directory controllers and the base fully qualified domain name for the HAProxy server using the following command:   
+       ![](img/default_kerberos_realm.png)  
+    2. Update the hosts file with the active directory controllers and the base fully qualified domain name for the HAProxy server using the following command:    
        ```shell
        sudo nano /etc/hosts
        ```
-       Settings should look similar to the image below:  
-       ![](img/base_ad_hosts_file.png)   
+       Settings should look similar to the image below:   
+       ![](img/base_ad_hosts_file.png)
     3. Edit the Kerberos configuration file using the `nano` command:   
         ```shell
         sudo nano /etc/krb5.conf
         ```
-       Add the following to the end of `[realms]` section:  
+        Add the following to the end of `[realms]` section:
        ```ini
-       RESEARCH.PEMO = {
+             RESEARCH.PEMO = {
                 kdc = AD-01.RESEARCH.PEMO
                 kdc = AD-02.RESEARCH.PEMO
                 kdc = AD-03.RESEARCH.PEMO
@@ -99,10 +100,10 @@ ___
        research.pemo = RESEARCH.PEMO
        ```
     4. Edit the Samba configuration file using the `nano` command:  
-        ```shell
-        sudo nano /etc/samba/smb.conf
-        ```
-       Add the following to the `[global]` section:   
+       ```shell
+       sudo nano /etc/samba/smb.conf
+       ```
+       Add the following to the `[global]` section:
        ```ini
        workgroup = RESEARCH
        netbios name = $LINUX_HOSTNAME$
@@ -159,78 +160,80 @@ ___
        ```shell
        sudo pam-auth-update --enable mkhomedir
        ```
-13. Edit the `/etc/sysctl.conf` file using the following command:  
-   ```shell
-   sudo nano /etc/sysctl.conf
-   ```
-   Place the following kernel parameter at the end of the file:  
-   ```text
-   net.ipv4.ip_nonlocal_bind = 1
-   ```
-   **Note: This enables the application to bind to an IP address that is nonlocal, meaning the IP address is not assigned to a 
-   device on the current system. In the case of the high availability system setup (heartbeat or fail over setup) where 
-   one system takes over another system's IP address if that system fails.**  
-14. Create the base main `keepalived` file for load balancing and high-availability using the following command:  
-   ```shell
-   sudo nano /etc/keepalived/keepalived.conf
-   ```
-   Place the following text into the `keepalived.conf` file:
-   ```shell
-   global_defs {
-   # Keep alive process identifier
-   # Uncomment if the node is the master, which is the identifier of the LVS (Linux Virtual Server) configuration.
-   lvs_id haproxy_DH
-   # Uncomment if the node is the backup, which is the identifier of the LVS (Linux Virtual Server) configuration.
-   #lvs_id haproxy_DH_passive
-   enable_script_security
-   }
-   # Define a health check script that Keepalived will run periodically to monitor the health of the service.
-   vrrp_script check_haproxy {
-   # Command that the VRRP script will execute to check the health of the service.
-   # Sends 0 to any haproxy process which checks if it's possible to send signals to the process, effectively checking if the process is running.
-   script "/usr/bin/sudo /usr/bin/killall -0 haproxy"
-   # Determines how often in seconds the script will run.
-   interval 2
-   # Determines the weight that will be subtracted from the priority of the VRRP instance. If haproxy isn't running, then 2 will be subtracted from the priority 
-   # which should will cause a failover to the other VRRP instance.  
-   weight 2
-   }
+13. Edit the `/etc/sysctl.conf` file using the following command:
+    ```shell
+    sudo nano /etc/sysctl.conf
+    ```
+    Place the following kernel parameter at the end of the file:
+    ```text
+    net.ipv4.ip_nonlocal_bind = 1
+    ```
+    **Note: This enables the application to bind to an IP address that is nonlocal, meaning the IP address is not assigned to a
+    device on the current system. In the case of the high availability system setup (heartbeat or fail over setup) where
+    one system takes over another system's IP address if that system fails.**  
+14. Create the base main `keepalived` file for load balancing and high-availability using the following command:
+    ```shell
+    sudo nano /etc/keepalived/keepalived.conf
+    ```
+    Place the following text into the `keepalived.conf` file:
+    ```shell
+    global_defs {
+    # Keep alive process identifier
+    # Uncomment if the node is the master, which is the identifier of the LVS (Linux Virtual Server) configuration.
+    lvs_id haproxy_DH
+    # Uncomment if the node is the backup, which is the identifier of the LVS (Linux Virtual Server) configuration.
+    #lvs_id haproxy_DH_passive
+    enable_script_security
+    }
+    
+    # Define a health check script that Keepalived will run periodically to monitor the health of the service.
+    vrrp_script check_haproxy {
+    # Command that the VRRP script will execute to check the health of the service.
+    # Sends 0 to any haproxy process which checks if it's possible to send signals to the process, effectively checking if the process is running.
+    script "/usr/bin/sudo /usr/bin/killall -0 haproxy"
+    # Determines how often in seconds the script will run.
+    interval 2
+    # Determines the weight that will be subtracted from the priority of the VRRP instance. If haproxy isn't running, then 2 will be subtracted from the priority
+    # which should will cause a failover to the other VRRP instance.
+    weight 2
+    }
 
-   # Virtual interface
-   vrrp_instance VI_01 {
-   # Default state of the node as either a Master or Slave, uncomment only one of state parameters.
-   state MASTER
-   #state SLAVE
-   interface ens18
-   # Use the last octet of the shared virtual ip address to set the id.
-   virtual_router_id 11
-   # The priority specifies the order in which the assigned interface to take over in a failover.
-   # Higher priority value sets the node as active and the other as standby, uncomment only one of the priority parameters.
-   priority 101
-   #priority 100
+    # Virtual interface
+    vrrp_instance VI_01 {
+    # Default state of the node as either a Master or Slave, uncomment only one of state parameters.
+    state MASTER
+    #state SLAVE
+    interface ens18
+    # Use the last octet of the shared virtual ip address to set the id.
+    virtual_router_id 11
+    # The priority specifies the order in which the assigned interface to take over in a failover.
+    # Higher priority value sets the node as active and the other as standby, uncomment only one of the priority parameters.
+    priority 101
+    #priority 100
 
-   # The virtual ip address shared between the two load balancers.
-   # This will change per active/standby pair.
-   virtual_ipaddress {
+    # The virtual ip address shared between the two load balancers.
+    # This will change per active/standby pair.
+    virtual_ipaddress {
     10.20.20.11
     }
 
-   # Associate the health check script check_haproxy with the VRRP instance.
-   track_script {
-   check_haproxy
-   ```
-   The configuration file will need to be created and the following parameters will change per active/standby pair:  
-
-   > lvs_id  
-   > state  
-   > interface - Interface parameter may or may not change check the interface name being used.  
-   > virtual_router_id
-   > priority  
-   > virtual_ipaddress  
-   
-   Don't start the keepalived service, make sure it's stop using the following command:  
-   ```shell
-   sudo service keepalived stop
-   ```
+    # Associate the health check script check_haproxy with the VRRP instance.
+    track_script {
+    check_haproxy
+    }
+    }
+    ```
+    The configuration file will need to be created and the following parameters will change per active/standby pair:  
+    > lvs_id  
+    > state  
+    > interface - Interface parameter may or may not change check the interface name being used.  
+    > virtual_router_id  
+    > priority  
+    > virtual_ipaddress  
+    
+    Don't start the keepalived service, make sure it's stop using the following command:
+    ```shell
+    sudo service keepalived stop
+    ```
 15. Shutdown the VM.  
-16. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.
+16. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
