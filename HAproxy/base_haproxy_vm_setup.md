@@ -167,9 +167,9 @@ ___
    ```text
    net.ipv4.ip_nonlocal_bind = 1
    ```
-   Note: This enables the application to bind to an IP address that is nonlocal, meaning the IP address is not assigned to a 
+   **Note: This enables the application to bind to an IP address that is nonlocal, meaning the IP address is not assigned to a 
    device on the current system. In the case of the high availability system setup (heartbeat or fail over setup) where 
-   one system takes over another system's IP address if that system fails.  
+   one system takes over another system's IP address if that system fails.**  
 14. Create the base main `keepalived` file for load balancing and high-availability using the following command:  
    ```shell
    sudo nano /etc/keepalived/keepalived.conf
