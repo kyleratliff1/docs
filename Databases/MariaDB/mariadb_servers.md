@@ -51,10 +51,18 @@ ___
    ```shell
    sudo nano /etc/hostname
    ```
-3. Update the line `127.0.1.1 baseubuntu` to `127.0.1.1 mdb-template` in the hosts file using the following command:
-   ```shell
-   sudo nano /etc/hosts
-   ```
+3. Update the hosts file using the following command:
+    ```shell
+    sudo nano /etc/hosts
+    ```
+   Place the following text into the file:  
+    ```text
+    127.0.1.1 mdb-template
+   # 10.20.X.X mdb-xx.research.pemo mdb-xx
+   # 10.20.1.13 ad-01.research.pemo ad-01
+   # 10.20.5.13 ad-02.research.pemo ad-02 
+   # 10.20.3.13 ad-03.research.pemo ad-03
+    ```
 4. Reset the machine ID using the following commands:
    ```shell
    sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
@@ -74,6 +82,8 @@ ___
 6. Leave the network interface settings in the `00-installer-config.yaml` yaml file in DHCP.
 7. Allow incoming traffic on the database ports below, using the `ufw` command:  
     ```shell
+    sudo ufw allow 43/tcp
+    sudo ufw allow 443/tcp
     sudo ufw allow 3306/tcp
     sudo ufw allow 4444/tcp
     sudo ufw allow 4567/tcp
@@ -244,7 +254,7 @@ ___
    ```shell
    sudo nano /etc/hosts
    ```
-   Remove, update, and uncomment the lines based on the image below and with respect to the server being configured:  
+   Remove, update, and uncomment the lines based on the image below with respect to the server being configured:  
    ![](img/server_ad_hosts_file.png)  
 6. Reset the machine ID using the following commands:
    ```shell
@@ -279,7 +289,7 @@ ___
     ```
     Uncomment the necessary lines and update the value of the key variables with respect to the server being created as in the image below:  
     ![](img/galera_config_node_settings.png)  
-    The key-values pairs that'll be the same and different across each server node configuration file:  
+    The following key-values pairs that'll be the same and different across each server node configuration file:  
     ```ini
     wsrep_cluster_name = "mdbc-01" # The value should be the same in all server node configuration files part of the same cluster
     wsrep_node_address = "10.20.X.X" # This will be updated per server node being created
