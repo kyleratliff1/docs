@@ -67,7 +67,7 @@ ___
    apt-get install haproxy=2.8.\*
    ```
    Note: if there exist a newer **LTS** only version past 2.8 then simply replace 2.8 with the latest **LTS** version.  
-12. Setup the base Active Directory settings:
+12. Setup the base Active Directory settings:  
     1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
        ```shell
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
