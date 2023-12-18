@@ -72,15 +72,15 @@ ___
        ```shell
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
        ```
-       When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:  
-       ![](img/default_kerberos_realm.png)  
-    2. Update the hosts file with the active directory controllers and the fully qualified domain name for the MariaDB server using the following command:
+       When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:   
+       ![](img/default_kerberos_realm.png)   
+    2. Update the hosts file with the active directory controllers and the base fully qualified domain name for the HAProxy server using the following command:   
        ```shell
        sudo nano /etc/hosts
        ```
        Settings should look similar to the image below:  
        ![](img/base_ad_hosts_file.png)   
-    3. Edit the Kerberos configuration file using the `nano` command: 
+    3. Edit the Kerberos configuration file using the `nano` command:   
         ```shell
         sudo nano /etc/krb5.conf
         ```
@@ -98,11 +98,11 @@ ___
        .research.pemo = .RESEARCH.PEMO
        research.pemo = RESEARCH.PEMO
        ```
-    4. Edit the Samba configuration file using the `nano` command:
+    4. Edit the Samba configuration file using the `nano` command:  
         ```shell
         sudo nano /etc/samba/smb.conf
         ```
-       Add the following to the `[global]` section: 
+       Add the following to the `[global]` section:   
        ```ini
        workgroup = RESEARCH
        netbios name = $LINUX_HOSTNAME$
@@ -127,11 +127,11 @@ ___
        template shell = /bin/bash
        template homedir = /home/%U
        ```
-    5. Edit the name service switch configuration file using the `nano` command:
+    5. Edit the name service switch configuration file using the `nano` command:  
        ```shell
         sudo nano /etc/nsswitch.conf
        ```
-       Add the following to the configuration file: 
+       Add the following to the configuration file:   
        ```text
        passwd: compat winbind files systemd
        group: compat winbind files systemd
@@ -147,15 +147,15 @@ ___
        
        netgroup: nis
        ```
-    6. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:  
+    6. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:   
        ```shell
         sudo visudo
        ```
-       Add the following line to the end of the file:
+       Add the following line to the end of the file:  
        ```text
        %cansudo All=(ALL:ALL) ALL
        ```
-    7. Ensure a user's home directory is created upon their first login, using the following command:
+    7. Ensure a user's home directory is created upon their first login, using the following command:  
        ```shell
        sudo pam-auth-update --enable mkhomedir
        ```
