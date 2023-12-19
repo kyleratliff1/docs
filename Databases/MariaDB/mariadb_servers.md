@@ -305,10 +305,11 @@ ___
         ```shell
         sudo su
         ```
-     2. Find the secondary disk that will be formatted by typing the following command should be in the following file structure `/dev/sdb`:
+     2. Find the secondary disk that will be formatted by typing the following command:
         ```shell
         fdisk -l
         ```
+        The file structure path for the secondary hard disk should look like **/dev/sdb**.   
      3. Once the disk is located start the partition process by typing the following command which redirects to the parted shell:
         ```shell
          parted /dev/sdb
@@ -325,7 +326,12 @@ ___
          ```shell
         mkpart primary 0.00TB 8.80TB
         ```
-        The secondary storage should now be partitioned. You can easily tell if a partition was created by identifying a number that's appended to the end of the secondary devices name, which would look like `/dev/sdb1` type the `fdisk -1` command to verify:  
+        The secondary storage should now be partitioned. You can easily tell if a partition was created by identifying 
+        a number that's appended to the end of the secondary devices name, which would look like **/dev/sdb1** type the  
+        following command to verify:  
+        ```shell
+        fdisk -l
+        ```
      5. Create and prepare a physical volume for use by issuing the following command:
         ```shell
         pvcreate /dev/sdb1
@@ -375,7 +381,7 @@ ___
     ![](img/mariadb_50_server_datadir_var.png)  
     Uncomment the various error log variables as in the image below:  
     ![](img/mariadb_50_server_log.png)  
-    Add the following system variable to the bottom `[mariadbd]` section to enable the MariaDB server audit plugin:  
+    Add the following system variables to the bottom of `[mariadbd]` section to enable the MariaDB server audit plugin:  
     ![](img/mariadb_50_server_audit_log_plugings.png)  
 14. Stop the MariaDB service using the following command:
     ```shell 
@@ -520,7 +526,7 @@ ___
    ```shell
    sudo galera_new_cluster
    ```
-   This will also automatically start the MariaDB service on `mdb-01`.
+   This will also automatically start the MariaDB service on **mdb-01**.
 3. Start the MariaDB service on the other MariaDB server nodes using the following command:
    ```shell
    sudo systemctl start mariadb
@@ -538,13 +544,13 @@ ___
    ```
    Output should look similar to the image below:  
    ![](img/wsrep_incoming_addresses.png)  
-5. Jump to step 6 in the `MariaDB Server Node and Cluster Setup` section.
+5. Jump to step 6 in the `MariaDB Server Node and Cluster Setup` section.   
 ___
 
 ## Deploy Galera Arbitrator
-This only needs to be configured on one of the server nodes, `mdb-03` will be selected since it's the odd number node, and the donor node. 
+This only needs to be configured on one of the server nodes, **mdb-03** will be selected since it's the odd number node, and the donor node. 
 ___
-1. Install Galera Arbitrator package using the following command:
+1. Install Galera Arbitrator package using the following command:  
    ```shell
     sudo apt install galera-arbitrator-4
    ```
@@ -608,7 +614,7 @@ ___
     # Delete last weeks archive
     rm -f $backup_dir/$backup_last_week  
     ```
-4. Create the `backup` directory using the command below:
+4. Create the **backup** directory using the command below:
    ```shell
     sudo mkdir /mnt/sql-data/backup
    ```
@@ -616,7 +622,7 @@ ___
    ```shell
     sudo chmod 777 /mnt/sql-data/backup
    ```
-   Change the owner of the directory to a user named `mysql` in the `mysql` group.
+   Change the owner of the directory to a user named **mysql** in the **mysql** group.
    ```shell
     sudo chown mysql:mysql /mnt/sql-data/backup
    ```
@@ -629,7 +635,7 @@ ___
       ```shell
       sudo chmod 777 /mnt/sql-data/backup/nas
       ```
-      Change the owner of the directory to a user named `mysql` in the `mysql` group.
+      Change the owner of the directory to a user named **mysql** in the **mysql** group.
       ```shell
       sudo chown mysql:mysql /mnt/sql-data/backup/nas
       ```
@@ -646,7 +652,7 @@ ___
          ```shell
          ssh automation@cnas-01.research.pemo
          ```
-         Create the directory in `volume1` directory using the following commands:
+         Create the directory in **volume1** directory using the following commands:
          ```shell
          cd volume1
          ```
@@ -692,8 +698,8 @@ ___
      - day of the week (0-7)
      - "*" is a wildcard that stands for "any"
      - The expression runs at 7:07 AM every day
-   - `root` indicates the user that the cron job should be run as. 
-   - `garbd --cfg /etc/garbd.cnf` start the galera arbitrator daemon with the `garbd.cnf` configuration file.  
+   - **root** indicates the user that the cron job should be run as. 
+   - **garbd --cfg /etc/garbd.cnf** start the galera arbitrator daemon with the **garbd.cnf** configuration file.  
    
    Check the image below on how the text should be placed in the crontab file:  
    ![](img/crontab_config_file.png)  
