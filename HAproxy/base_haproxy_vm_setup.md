@@ -30,25 +30,9 @@ ___
    # 10.20.3.13 ad-03.research.pemo ad-03
    ```
    Settings should look similar to the image below:  
-   ![](img/base_ad_hosts_file.png)  
-4. Reset the machine ID using the following commands:
-   ```shell
-   sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
-   sudo dbus-uuidgen --ensure=/etc/machine-id
-   sudo dbus-uuidgen --ensure
-   ```
-   Use the `cat` command to verify the machine ID in both files which should be the same:
-   ```shell
-   cat /etc/machine-id
-   cat /var/lib/dbus/machine-id
-   ```
-5. Regenerate ssh keys using the following commands:
-   ```shell
-   sudo rm /etc/ssh/ssh_host_*
-   sudo dpkg-reconfigure openssh-server
-   ```
-6. Leave the network interface settings in the `00-installer-config.yaml` yaml file in **DHCP**.  
-7. Allow the HAproxy Runtime API service tcp port 8404, using the `ufw` command:  
+   ![](img/base_ad_hosts_file.png)
+4. Leave the network interface settings in the `00-installer-config.yaml` yaml file in **DHCP**.   
+5. Allow the HAproxy Runtime API service tcp port 8404, using the `ufw` command:  
    ```shell
     sudo ufw allow 8404/tcp
    ```
@@ -56,103 +40,103 @@ ___
    ```shell
    sudo ufw status
    ```
-8. Reboot the machine using the following command:  
+6. Reboot the machine using the following command:  
    ```shell
    sudo reboot
    ```
-9. Check for OS updates by issuing the following commands in the order below:  
+7. Check for OS updates by issuing the following commands in the order below:  
    ```shell
    sudo apt-get update
    sudo apt-get upgrade
    ```
-10. If prompted to select which daemon services should be restarted, then accept the defaults selections.  
-11. Setup the base Active Directory settings:
-    1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
+8. If prompted to select which daemon services should be restarted, then accept the defaults selections.  
+9. Setup the base Active Directory settings:
+   1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
+      ```shell
+      sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
+      ```
+      When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:   
+      ![](img/default_kerberos_realm.png)
+   2. Edit the Kerberos configuration file using the `nano` command:   
        ```shell
-       sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
+       sudo nano /etc/krb5.conf
        ```
-       When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:   
-       ![](img/default_kerberos_realm.png)
-    2. Edit the Kerberos configuration file using the `nano` command:   
-        ```shell
-        sudo nano /etc/krb5.conf
-        ```
-        Add the following to the end of `[realms]` section:
-       ```ini
-             RESEARCH.PEMO = {
-                kdc = AD-01.RESEARCH.PEMO
-                kdc = AD-02.RESEARCH.PEMO
-                kdc = AD-03.RESEARCH.PEMO
-                default_domain = RESEARCH.PEMO
-              }
-       ```
-       Add the following to the end of `[domain_realm]` section:  
-       ```ini
-       .research.pemo = .RESEARCH.PEMO
-       research.pemo = RESEARCH.PEMO
-       ```
-    3. Edit the Samba configuration file using the `nano` command:  
-       ```shell
-       sudo nano /etc/samba/smb.conf
-       ```
-       Add the following to the `[global]` section:
-       ```ini
-       workgroup = RESEARCH
-       netbios name = $LINUX_HOSTNAME$
-       realm = RESEARCH.PEMO
-       server string = 
-       security = ads
-       encrypt passwords = yes
-       password server = AD-01.RESEARCH.PEMO
-       log file = /var/log/samba/%m.log
-       max log size = 50
-       socket options = TCP_NODELAY SO_RCVBUF=8192 SO_SNDBUF=8192
-       preferred master = False
-       local master = No
-       domain master = No
-       dns proxy = No
-       idmap uid = 10000-20000
-       idmap gid = 10000-20000
-       winbind enum users = yes
-       winbind enum groups = yes
-       winbind use default domain = yes
-       client use spnego = yes
-       template shell = /bin/bash
-       template homedir = /home/%U
-       ```
-    4. Edit the name service switch configuration file using the `nano` command:  
-       ```shell
-        sudo nano /etc/nsswitch.conf
-       ```
-       Add the following to the configuration file:   
-       ```text
-       passwd: compat winbind files systemd
-       group: compat winbind files systemd
-       gshadow: compat winbind files
+       Add the following to the end of `[realms]` section:
+      ```ini
+            RESEARCH.PEMO = {
+               kdc = AD-01.RESEARCH.PEMO
+               kdc = AD-02.RESEARCH.PEMO
+               kdc = AD-03.RESEARCH.PEMO
+               default_domain = RESEARCH.PEMO
+             }
+      ```
+      Add the following to the end of `[domain_realm]` section:  
+      ```ini
+      .research.pemo = .RESEARCH.PEMO
+      research.pemo = RESEARCH.PEMO
+      ```
+   3. Edit the Samba configuration file using the `nano` command:  
+      ```shell
+      sudo nano /etc/samba/smb.conf
+      ```
+      Add the following to the `[global]` section:
+      ```ini
+      workgroup = RESEARCH
+      netbios name = $LINUX_HOSTNAME$
+      realm = RESEARCH.PEMO
+      server string = 
+      security = ads
+      encrypt passwords = yes
+      password server = AD-01.RESEARCH.PEMO
+      log file = /var/log/samba/%m.log
+      max log size = 50
+      socket options = TCP_NODELAY SO_RCVBUF=8192 SO_SNDBUF=8192
+      preferred master = False
+      local master = No
+      domain master = No
+      dns proxy = No
+      idmap uid = 10000-20000
+      idmap gid = 10000-20000
+      winbind enum users = yes
+      winbind enum groups = yes
+      winbind use default domain = yes
+      client use spnego = yes
+      template shell = /bin/bash
+      template homedir = /home/%U
+      ```
+   4. Edit the name service switch configuration file using the `nano` command:  
+      ```shell
+       sudo nano /etc/nsswitch.conf
+      ```
+      Add the following to the configuration file:   
+      ```text
+      passwd: compat winbind files systemd
+      group: compat winbind files systemd
+      gshadow: compat winbind files
        
-       hosts: files dns
-       networks: files
+      hosts: files dns
+      networks: files
        
-       protocols: db files
-       services: db files
-       ethers: db files
-       rpc: db files
+      protocols: db files
+      services: db files
+      ethers: db files
+      rpc: db files
        
-       netgroup: nis
-       ```
-    5. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:   
-       ```shell
-        sudo visudo
-       ```
-       Add the following line to the end of the file:  
-       ```text
-       %cansudo All=(ALL:ALL) ALL
-       ```
-    6. Ensure a user's home directory is created upon their first login, using the following command:  
-       ```shell
-       sudo pam-auth-update --enable mkhomedir
-       ```
-12. Edit the `/etc/sysctl.conf` file using the following command:
+      netgroup: nis
+      ```
+   5. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:   
+      ```shell
+       sudo visudo
+      ```
+      Add the following line to the end of the file:  
+      ```text
+      %cansudo All=(ALL:ALL) ALL
+      ```
+   6. Ensure a user's home directory is created upon their first login, using the following command:  
+      ```shell
+      sudo pam-auth-update --enable mkhomedir
+      ```
+10. Edit the `/etc/sysctl.conf` file using the following command:
     ```shell
     sudo nano /etc/sysctl.conf
     ```
@@ -163,7 +147,7 @@ ___
     **Note: This enables the application to bind to an IP address that is nonlocal, meaning the IP address is not assigned to a
     device on the current system. In the case of the high availability system setup (heartbeat or fail over setup) where
     one system takes over another system's IP address if that system fails.**  
-13. Add and install the HAProxy repository, target package, and hard dependencies using the following command:  
+11. Add and install the HAProxy repository, target package, and hard dependencies using the following command:  
     ```shell
     apt-get install --no-install-recommends software-properties-common
     ```
@@ -176,7 +160,7 @@ ___
     apt-get install haproxy=2.8.\*
     ```
     **Note: if there exist a newer LTS ONLY VERSION past 2.8 then simply replace 2.8 with the latest **LTS** version.** 
-14. Create the base main `keepalived` file for load balancing and high-availability using the following command:
+12. Create the base main `keepalived` file for load balancing and high-availability using the following command:
     ```shell
     sudo nano /etc/keepalived/keepalived.conf
     ```
@@ -232,12 +216,12 @@ ___
    > priority  
    > virtual_ipaddress
 
-15. Create the **keepalived_script** user:  
+13. Create the **keepalived_script** user:  
    ```shell
    sudo groupadd -r keepalived_script
    sudo useradd -r -s /sbin/nologin -g keepalived_script -M keepalived_script
    ```
-16. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
+14. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
     ```shell
     sudo visudo
     ```
@@ -247,7 +231,7 @@ ___
     ```
     The updated **sudoers** configuration file should look similar to the image below:  
     ![](img/sudoers_temp_file.png)  
-17. Ensure that the **keepalived** service is stopped using the following command:  
+15. Ensure that the **keepalived** service is stopped using the following command:  
     ```shell
     sudo systemctl stop keepalived
     ```
@@ -255,5 +239,5 @@ ___
     ```shell
     sudo systemctl status keepalived
     ```
-18. Shutdown the VM.  
-19. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
+16. Shutdown the VM.  
+17. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
