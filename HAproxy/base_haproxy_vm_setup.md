@@ -18,14 +18,16 @@ ___
    ```shell
    sudo nano /etc/hosts
    ```
-   Place the following text into the file:
+   Place the following text into the file:  
    ```shell
    127.0.1.1 base_haproxy
-   # 10.20.X.X xxh-xx.research.pemo xxh-xx
+   # 10.20.X.X xxh-XX.research.pemo xxh-XX
    # 10.20.1.13 ad-01.research.pemo ad-01
    # 10.20.5.13 ad-02.research.pemo ad-02 
    # 10.20.3.13 ad-03.research.pemo ad-03
    ```
+   Settings should look similar to the image below:  
+   ![](img/base_ad_hosts_file.png)  
 4. Reset the machine ID using the following commands:
    ```shell
    sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
@@ -81,14 +83,8 @@ ___
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
        ```
        When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:   
-       ![](img/default_kerberos_realm.png)  
-    2. Update the hosts file with the active directory controllers and the base fully qualified domain name for the HAProxy server using the following command:    
-       ```shell
-       sudo nano /etc/hosts
-       ```
-       Settings should look similar to the image below:   
-       ![](img/base_ad_hosts_file.png)
-    3. Edit the Kerberos configuration file using the `nano` command:   
+       ![](img/default_kerberos_realm.png)
+    2. Edit the Kerberos configuration file using the `nano` command:   
         ```shell
         sudo nano /etc/krb5.conf
         ```
@@ -106,7 +102,7 @@ ___
        .research.pemo = .RESEARCH.PEMO
        research.pemo = RESEARCH.PEMO
        ```
-    4. Edit the Samba configuration file using the `nano` command:  
+    3. Edit the Samba configuration file using the `nano` command:  
        ```shell
        sudo nano /etc/samba/smb.conf
        ```
@@ -135,7 +131,7 @@ ___
        template shell = /bin/bash
        template homedir = /home/%U
        ```
-    5. Edit the name service switch configuration file using the `nano` command:  
+    4. Edit the name service switch configuration file using the `nano` command:  
        ```shell
         sudo nano /etc/nsswitch.conf
        ```
@@ -155,7 +151,7 @@ ___
        
        netgroup: nis
        ```
-    6. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:   
+    5. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:   
        ```shell
         sudo visudo
        ```
@@ -163,7 +159,7 @@ ___
        ```text
        %cansudo All=(ALL:ALL) ALL
        ```
-    7. Ensure a user's home directory is created upon their first login, using the following command:  
+    6. Ensure a user's home directory is created upon their first login, using the following command:  
        ```shell
        sudo pam-auth-update --enable mkhomedir
        ```
@@ -238,7 +234,7 @@ ___
    > priority  
    > virtual_ipaddress  
     
-    Don't start the keepalived service, make sure it's stopped using the following command:
+    Don't start the keepalived service, make sure it's stopped using the following command:  
     ```shell
     sudo service keepalived stop
     ```
