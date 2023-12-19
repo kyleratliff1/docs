@@ -180,11 +180,7 @@ ___
     Place the following text into the `keepalived.conf` file:
     ```shell
     global_defs {
-            # Keep alive process identifier
-            # Uncomment if the node is the master, which is the identifier of the LVS (Linux Virtual Server) configuration.
-            lvs_id haproxy_DH
-            # Uncomment if the node is the backup, which is the identifier of the LVS (Linux Virtual Server) configuration.
-            #lvs_id haproxy_DH_passive
+            # Enable script security to run check_haproxy script and prevent unauthorized scripts from being executed.
             enable_script_security
     }
     
@@ -204,7 +200,7 @@ ___
     vrrp_instance VI_01 {
             # Default state of the node as either a Master or Slave, uncomment only one of state parameters.
             state MASTER
-            #state SLAVE
+            #state BACKUP
             interface ens18
             # Use the last octet of the shared virtual ip address to set the id.
             virtual_router_id 11
@@ -231,11 +227,30 @@ ___
    > interface - Interface parameter may or may not change check the interface name being used.  
    > virtual_router_id  
    > priority  
-   > virtual_ipaddress  
-    
-   Don't start the **keepalived** service, make sure it's stopped using the following command:  
+   > virtual_ipaddress
+
+15. Create the **keepalived_script** user:  
    ```shell
-   sudo service keepalived stop
+   sudo groupadd -r keepalived_script
+   sudo useradd -r -s /sbin/nologin -g keepalived_script -M keepalived_script
    ```
-15. Shutdown the VM.  
-16. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
+16. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
+    ```shell
+    sudo visudo
+    ```
+    Add the following line to the end of the file:
+    ```shell
+    %keepalived_script ALL=(ALL) NOPASSWD: /usr/bin/killall
+    ```
+    The updated **sudoers** configuration file should look similar to the image below:  
+    ![](img/sudoers_temp_file.png)  
+17. Ensure that the **keepalived** service is stopped using the following command:  
+    ```shell
+    sudo systemctl stop keepalived
+    ```
+    The status of the **keepalived** service can be checked using the following command:  
+    ```shell
+    sudo systemctl status keepalived
+    ```
+18. Shutdown the VM.  
+19. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
