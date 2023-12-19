@@ -63,21 +63,7 @@ ___
    sudo apt-get upgrade
    ```
 10. If prompted to select which daemon services should be restarted, then accept the defaults selections.  
-11. Add and install the HAProxy repository, target package, and hard dependencies using the following command:  
-    ```shell
-    apt-get install --no-install-recommends software-properties-common
-    ```
-    Add the vbernat/haproxy-2.8 PPA (Personal Package Archive) to the systems software repositories:  
-    ```shell
-    add-apt-repository ppa:vbernat/haproxy-2.8
-    ```
-    Install haproxy package in the 2.8.x range or greater:  
-    ```shell
-    apt-get install haproxy=2.8.\*
-    ```
-    **Note: if there exist a newer LTS ONLY VERSION past 2.8 then simply replace 2.8 with the latest **LTS** version.**  
-
-12. Setup the base Active Directory settings:
+11. Setup the base Active Directory settings:
     1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
        ```shell
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
@@ -163,7 +149,7 @@ ___
        ```shell
        sudo pam-auth-update --enable mkhomedir
        ```
-13. Edit the `/etc/sysctl.conf` file using the following command:
+12. Edit the `/etc/sysctl.conf` file using the following command:
     ```shell
     sudo nano /etc/sysctl.conf
     ```
@@ -174,6 +160,19 @@ ___
     **Note: This enables the application to bind to an IP address that is nonlocal, meaning the IP address is not assigned to a
     device on the current system. In the case of the high availability system setup (heartbeat or fail over setup) where
     one system takes over another system's IP address if that system fails.**  
+13. Add and install the HAProxy repository, target package, and hard dependencies using the following command:  
+    ```shell
+    apt-get install --no-install-recommends software-properties-common
+    ```
+    Add the vbernat/haproxy-2.8 PPA (Personal Package Archive) to the systems software repositories:  
+    ```shell
+    add-apt-repository ppa:vbernat/haproxy-2.8
+    ```
+    Install haproxy package in the 2.8.x range or greater:  
+    ```shell
+    apt-get install haproxy=2.8.\*
+    ```
+    **Note: if there exist a newer LTS ONLY VERSION past 2.8 then simply replace 2.8 with the latest **LTS** version.** 
 14. Create the base main `keepalived` file for load balancing and high-availability using the following command:
     ```shell
     sudo nano /etc/keepalived/keepalived.conf
