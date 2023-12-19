@@ -234,9 +234,9 @@ ___
    > priority  
    > virtual_ipaddress  
     
-    Don't start the keepalived service, make sure it's stopped using the following command:  
-    ```shell
-    sudo service keepalived stop
-    ```
+   Don't start the keepalived service, make sure it's stopped using the following command:  
+   ```shell
+   sudo service keepalived stop
+   ```
 15. Shutdown the VM.  
 16. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
