@@ -226,7 +226,7 @@ ___
             }
     }
     ```
-    The configuration file will need to be created and the following parameters will change per active/standby pair:
+    **The configuration file will need to be created and the following parameters will change per active/standby pair:**
    > lvs_id
    > state  
    > interface - Interface parameter may or may not change check the interface name being used.  
@@ -234,7 +234,7 @@ ___
    > priority  
    > virtual_ipaddress  
     
-   Don't start the keepalived service, make sure it's stopped using the following command:  
+   Don't start the **keepalived** service, make sure it's stopped using the following command:  
    ```shell
    sudo service keepalived stop
    ```
