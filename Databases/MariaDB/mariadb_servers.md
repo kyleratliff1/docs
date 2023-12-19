@@ -214,7 +214,7 @@ ___
        
        netgroup: nis
        ```
-    6. Edit the `/etc/sudoers.tmp` sudoers configuration using the command below:  
+    6. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
        ```shell
         sudo visudo
        ```
