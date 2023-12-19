@@ -34,7 +34,7 @@ ___
 4. If no base Ubuntu template is available then see the `base-ubuntu build sheet` document which should be located under the `scada` share on the research `NAS`.
    1. Jump to **step 3** in `this` section.
 ___   
-## Create MariaDB HAProxy Nodes9
+## Create MariaDB HAProxy Nodes
 1. Create the `haproxy` file for load balancing and high-availability using the following command:  
    ```shell
    sudo nano /etc/haproxy/haproxy.cfg
