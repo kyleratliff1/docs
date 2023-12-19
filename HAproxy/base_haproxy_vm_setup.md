@@ -1,8 +1,15 @@
 ## Create Base HAProxy VM Template
-A full clone of the `base-ubuntu-template` with a VM Name `base-haproxy-template` and VM ID in the 
-thousands, should have been created before continuing in this section.
 ___
-1. Leave the default VM hardware settings and Start the VM. 
+1. Make a full clone of the template (`base-ubuntu-template`) and set the following settings below:
+
+   > Mode = Full Clone  
+   > Target Storage = Same as source  
+   > Name = base-haproxy-template  
+   > Resource Pool = None  
+   > Format = QEMU image format  
+   > VM ID = <next_available_address_in_the_thousands>  
+    
+   **Leave the default VM hardware settings and start the VM.** 
 2. Update the hostname from `baseubuntu` to `base-haproxy` using the following command:
    ```shell
    sudo nano /etc/hostname
@@ -36,7 +43,7 @@ ___
    sudo dpkg-reconfigure openssh-server
    ```
 6. Leave the network interface settings in the `00-installer-config.yaml` yaml file in **DHCP**.  
-7. Allow HAproxy Runtime API service to listen port 8404, using the `ufw` command:  
+7. Allow the HAproxy Runtime API service tcp port 8404, using the `ufw` command:  
    ```shell
     sudo ufw allow 8404/tcp
    ```
@@ -66,7 +73,7 @@ ___
     ```shell
     apt-get install haproxy=2.8.\*
     ```
-    Note: if there exist a newer **LTS** only version past 2.8 then simply replace 2.8 with the latest **LTS** version.  
+    **Note: if there exist a newer LTS ONLY VERSION past 2.8 then simply replace 2.8 with the latest **LTS** version.**  
 
 12. Setup the base Active Directory settings:
     1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
@@ -178,49 +185,49 @@ ___
     Place the following text into the `keepalived.conf` file:
     ```shell
     global_defs {
-    # Keep alive process identifier
-    # Uncomment if the node is the master, which is the identifier of the LVS (Linux Virtual Server) configuration.
-    lvs_id haproxy_DH
-    # Uncomment if the node is the backup, which is the identifier of the LVS (Linux Virtual Server) configuration.
-    #lvs_id haproxy_DH_passive
-    enable_script_security
+            # Keep alive process identifier
+            # Uncomment if the node is the master, which is the identifier of the LVS (Linux Virtual Server) configuration.
+            lvs_id haproxy_DH
+            # Uncomment if the node is the backup, which is the identifier of the LVS (Linux Virtual Server) configuration.
+            #lvs_id haproxy_DH_passive
+            enable_script_security
     }
     
     # Define a health check script that Keepalived will run periodically to monitor the health of the service.
     vrrp_script check_haproxy {
-    # Command that the VRRP script will execute to check the health of the service.
-    # Sends 0 to any haproxy process which checks if it's possible to send signals to the process, effectively checking if the process is running.
-    script "/usr/bin/sudo /usr/bin/killall -0 haproxy"
-    # Determines how often in seconds the script will run.
-    interval 2
-    # Determines the weight that will be subtracted from the priority of the VRRP instance. If haproxy isn't running, then 2 will be subtracted from the priority
-    # which should will cause a failover to the other VRRP instance.
-    weight 2
+            # Command that the VRRP script will execute to check the health of the service.
+            # Sends 0 to any haproxy process which checks if it's possible to send signals to the process, effectively checking if the process is running.
+            script "/usr/bin/sudo /usr/bin/killall -0 haproxy"
+            # Determines how often in seconds the script will run.
+            interval 2
+            # Determines the weight that will be subtracted from the priority of the VRRP instance. If haproxy isn't running, then 2 will be subtracted from the priority
+            # which should will cause a failover to the other VRRP instance.
+            weight 2
     }
 
     # Virtual interface
     vrrp_instance VI_01 {
-    # Default state of the node as either a Master or Slave, uncomment only one of state parameters.
-    state MASTER
-    #state SLAVE
-    interface ens18
-    # Use the last octet of the shared virtual ip address to set the id.
-    virtual_router_id 11
-    # The priority specifies the order in which the assigned interface to take over in a failover.
-    # Higher priority value sets the node as active and the other as standby, uncomment only one of the priority parameters.
-    priority 101
-    #priority 100
+            # Default state of the node as either a Master or Slave, uncomment only one of state parameters.
+            state MASTER
+            #state SLAVE
+            interface ens18
+            # Use the last octet of the shared virtual ip address to set the id.
+            virtual_router_id 11
+            # The priority specifies the order in which the assigned interface to take over in a failover.
+            # Higher priority value sets the node as active and the other as standby, uncomment only one of the priority parameters.
+            priority 101
+            #priority 100
 
-    # The virtual ip address shared between the two load balancers.
-    # This will change per active/standby pair.
-    virtual_ipaddress {
-    10.20.20.11
-    }
+            # The virtual ip address shared between the two load balancers.
+            # This will change per active/standby pair.
+            virtual_ipaddress {
+                    10.20.20.11
+            }
 
-    # Associate the health check script check_haproxy with the VRRP instance.
-    track_script {
-    check_haproxy
-    }
+            # Associate the health check script check_haproxy with the VRRP instance.
+            track_script {
+                    check_haproxy
+            }
     }
     ```
     The configuration file will need to be created and the following parameters will change per active/standby pair:
@@ -231,7 +238,7 @@ ___
    > priority  
    > virtual_ipaddress  
     
-    Don't start the keepalived service, make sure it's stop using the following command:
+    Don't start the keepalived service, make sure it's stopped using the following command:
     ```shell
     sudo service keepalived stop
     ```
