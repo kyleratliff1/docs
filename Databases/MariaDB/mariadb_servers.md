@@ -63,24 +63,8 @@ ___
    # 10.20.5.13 ad-02.research.pemo ad-02 
    # 10.20.3.13 ad-03.research.pemo ad-03
     ```
-4. Reset the machine ID using the following commands:
-   ```shell
-   sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
-   sudo dbus-uuidgen --ensure=/etc/machine-id
-   sudo dbus-uuidgen --ensure
-   ```
-   Use the `cat` command to verify the machine ID in both files which should be the same:
-   ```shell
-   cat /etc/machine-id
-   cat /var/lib/dbus/machine-id
-   ```
-5. Regenerate ssh keys using the following commands:
-   ```shell
-   sudo rm /etc/ssh/ssh_host_*
-   sudo dpkg-reconfigure openssh-server
-   ```
-6. Leave the network interface settings in the `00-installer-config.yaml` yaml file in DHCP.
-7. Allow incoming traffic on the database ports below, using the `ufw` command:  
+4. Leave the network interface settings in the `00-installer-config.yaml` yaml file in DHCP.
+5. Allow incoming traffic on the database ports below, using the `ufw` command:  
     ```shell
     sudo ufw allow 43/tcp
     sudo ufw allow 443/tcp
@@ -94,23 +78,23 @@ ___
    ```shell
    sudo ufw status
    ```
-8. Reboot the machine using the following command:
+6. Reboot the machine using the following command:
    ```shell
    sudo reboot
    ```
-9. Check for OS updates by issuing the following commands in the order below:
+7. Check for OS updates by issuing the following commands in the order below:
    ```shell
    sudo apt-get update
    sudo apt-get upgrade
    ```
+8. If prompted to select which daemon services should be restarted, then accept the defaults selections.
+9. Install MariaDB using the following commands:
+   ```shell
+   curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash
+   sudo apt-get install mariadb-server galera-4 mariadb-client libmariadb3 mariadb-backup mariadb-common
+   ```
 10. If prompted to select which daemon services should be restarted, then accept the defaults selections.
-11. Install MariaDB using the following commands:
-    ```shell
-    curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash
-    sudo apt-get install mariadb-server galera-4 mariadb-client libmariadb3 mariadb-backup mariadb-common
-    ```
-12. If prompted to select which daemon services should be restarted, then accept the defaults selections.
-13. Secure the installation and answer the command prompt questions using the below command:  
+11. Secure the installation and answer the command prompt questions using the below command:  
     ```shell
     sudo mariadb-secure-installation
     ```  
@@ -128,13 +112,13 @@ ___
     ```
     Initiate the following query after being placed in the MariaDB interactive shell:  
     > MariaDB[(none)] > SET PASSWORD FOR 'root'@localhost = PASSWORD("<**one_rich_cat_one_extra_rich_cat**>");  
-14. Configure the base galera-related settings by issuing the below command:  
+12. Configure the base galera-related settings by issuing the below command:  
     ```shell
     sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
     ```
     Add any additional commented out lines according to the image below:  
     ![](img/galera_config_base_settings.png)      
-15. Setup the base Active Directory settings:
+13. Setup the base Active Directory settings:
     1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
        ```shell
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
@@ -226,15 +210,15 @@ ___
        ```shell
        sudo pam-auth-update --enable mkhomedir
        ```
-16. Shutdown the VM using one of following methods:
+14. Shutdown the VM using one of following methods:
     ```shell
     sudo shutdown
     ```
     Exit the console get into the Proxmox hypervisor web interface select the VM and manually shutting down the VM:  
     ![](img/vm_manual_shutdown.png)  
-17. Make the VM a template with the name `base-maridb-template` by right-clicking on the VM and selecting `Convert to template`:  
+15. Make the VM a template with the name `base-maridb-template` by right-clicking on the VM and selecting `Convert to template`:  
     ![](img/creating_vm_template.png)
-18. Jump to step 2 in the `MariaDB Server Node and Cluster Setup` section. 
+16. Jump to step 2 in the `MariaDB Server Node and Cluster Setup` section. 
 ___
 
 ## Creating MariaDB Server Nodes
@@ -403,11 +387,11 @@ ___
     ```shell 
     sudo systemctl start mariadb.service
     ```
-    If the MariaDB service doesn't start then initialization of the galera custer may need to be performed using the following command:  
+    If the MariaDB service doesn't start then temporary initialization of the galera custer may need to be performed using the following command:  
     ```shell 
     sudo galera_new_cluster
     ```
-    The the status of the MariaDB service can be checked using the following command:  
+    The status of the MariaDB service can be checked using the following command:  
     ```shell 
     sudo systemctl is-active mariadb.service
     ```
@@ -416,8 +400,12 @@ ___
     mariadb -u root -p -e "SELECT @@datadir"
     ```
     Output should look like the image below:  
-    ![](img/datadir_sys_var.png)
-20. Join the MariaDB server to the Active Directory:
+    ![](img/datadir_sys_var.png)  
+20. Stop the MariaDB service using the following command:
+    ```shell 
+    sudo systemctl stop mariadb.service
+    ```
+21. Join the MariaDB server to the Active Directory:
     1. Edit the Samba configuration file using the following command:
        ```shell 
        sudo nano /etc/samba/smb.conf
@@ -452,7 +440,7 @@ ___
        This command will return a list of users from the domain that is connected via `winbind`.  
 
     5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
-21. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
+22. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
     will explain how to install `SentinelOne` by mounting a NAS (network attached storage) device then accessing the install files
     on the NAS. There are other methods for installation along with uninstalling, and upgrading `SentinelOne`, if any
     other method is needed then see the `SentinelOne` setup document that's under a PEMO Site Automation GitHub repository.  
@@ -508,8 +496,8 @@ ___
        ```
     10. Open up the `SentinelOne` web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
-22. Repeat steps 1 - 21 above for every MariaDB server node created.  
-23. Jump to step 5 in the  `MariaDB Server Node and Cluster Setup` section.  
+23. Repeat steps 1 - 21 above for every MariaDB server node created.  
+24. Jump to step 5 in the  `MariaDB Server Node and Cluster Setup` section.  
 ___
 
 ## Deploy Galera Cluster  
