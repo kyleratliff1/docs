@@ -311,7 +311,7 @@ ___
     10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
 23. Repeat steps 1 - 21 above for every MariaDB server node created.  
-24. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.  
+24. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
 ___
 
 ## Galera Cluster Setup
@@ -346,7 +346,7 @@ ___
    ```
    Output should look similar to the image below:  
    ![](img/wsrep_incoming_addresses.png)  
-5. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.   
+5. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.   
 ___
 
 ## Galera Arbitrator Setup
@@ -509,9 +509,9 @@ ___
    ```shell
    sudo systemctl restart cron
    ```
-8. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.  
+8. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
 ___
 
 ## MariaDB Backup Node Setup
 
-8. Jump to step 8 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.
+8. Jump to step 8 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.
