@@ -1,4 +1,4 @@
-# Create HAProxy Virtual Machine Template
+# HAProxy Virtual Machine Template Setup
 This document is merely to give a starting point for an HAProxy VM with base settings. When creating a clone of this template
 parameter value placeholders that exist in various configuration files will need to be updated, additional configuration files 
 might need to be created, and existing or new daemon services will need to started. 
