@@ -23,7 +23,6 @@ ___
 6. Jump to the [Galera Arbitrator Setup](#galera-arbitrator-setup) section.
 7. Jump to the [MariaDB Backup Node Setup](#mariadb-backup-node-setup) section.  
 8. Create the MariaDB HAProxy servers using the **mariadb_haproxy** document. 
-___
 
 ## MariaDB Server Node Setup
 ___
@@ -312,10 +311,8 @@ ___
         ![](./img/sentinels_endpoints.png)  
 23. Repeat steps 1 - 21 above for every MariaDB server node created.  
 24. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
-___
 
 ## Galera Cluster Setup
-___
 Start the Galera Cluster by bootstrapping a server node, which makes the node the primary component from which the other nodes in the cluster can sync.
 The MariaDB service will be stopped on every node that is created until the cluster is initialized on one of the nodes. The initialization of the cluster can
 technically be started on any server node available but typically the start of the cluster will be initialized from the first node (`mdb-01`).
@@ -347,7 +344,6 @@ ___
    Output should look similar to the image below:  
    ![](img/wsrep_incoming_addresses.png)  
 5. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.   
-___
 
 ## Galera Arbitrator Setup
 This only needs to be configured on one of the server nodes, **mdb-03** will be selected since it's the odd number node, and the donor node. 
@@ -510,8 +506,7 @@ ___
    sudo systemctl restart cron
    ```
 8. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
-___
 
 ## MariaDB Backup Node Setup
-
-8. Jump to step 8 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.
+___
+1. Jump to step 8 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.
