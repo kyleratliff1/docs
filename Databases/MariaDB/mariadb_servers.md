@@ -1,4 +1,4 @@
-# MariaDB Server Node Main Content Setup
+# MariaDB Server Node Main Content Steps
 ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
     **https://Your-Servers-IP-Address:8006/** 
