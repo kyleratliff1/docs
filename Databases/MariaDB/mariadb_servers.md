@@ -1,7 +1,7 @@
-# MariaDB Server Node and Cluster Setup  
+# MariaDB Server Node Main Content Setup
 ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
-    `https://Your-Servers-IP-Address:8006/` 
+    **https://Your-Servers-IP-Address:8006/** 
 2. If a base MariaDB template (`base-mdb-template`) is available right click and clone the virtual machine template and 
    set the following settings below, if not continue in `this` section to **step 3**:  
    > Mode = Full Clone  
@@ -12,20 +12,20 @@ ___
 
    > If a migration is needing to be performed to another PROXMOX node then perform the migration first before modifying or starting the virtual machine. 
 
-   1. Jump to the `Creating MariaDB Nodes` section.
+   1. Jump to the [MariaDB Server Node Setup](#mariadb-server-node-setup) section.
    2. Jump to **step 5** in `this` section.
 3. If a base ubuntu template (**base-ubuntu-template**) is available, see the **mariadb_template** document then return 
    to **this** document and jump to **step 2** in **this** section, if not continue in **this** section to **step 4**.  
 4. If no base Ubuntu template is available then see the **base-ubuntu build sheet** document which should be located under 
    the **scada** share on the research **NAS**.  
    1. Jump to step 3 in **this** section.
-5. Jump to the **Deploy Galera Cluster** section.
-6. Jump to the **Deploy Galera Arbitrator** section.
-7. Jump to the **Create MariaDB Backup Node** section.  
+5. Jump to the [Galera Cluster Setup](#galera-cluster-setup) section.
+6. Jump to the [Galera Arbitrator Setup](#galera-arbitrator-setup) section.
+7. Jump to the [MariaDB Backup Node Setup](#mariadb-backup-node-setup) section.  
 8. Create the MariaDB HAProxy servers using the **mariadb_haproxy** document. 
 ___
 
-## Creating MariaDB Server Nodes
+## MariaDB Server Node Setup
 ___
 1. Add a secondary hard disk to the MariaDB node using the **Hardware** section from the content panel:  
     ![](img/adding_secondary_hard_disk.png)  
@@ -308,14 +308,14 @@ ___
        ```shell
        sudo nano sentinelone_linux_agent_install.sh
        ```
-    10. Open up the `SentinelOne` web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
+    10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
 23. Repeat steps 1 - 21 above for every MariaDB server node created.  
-24. Jump to step 5 in the  `MariaDB Server Node and Cluster Setup` section.  
+24. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.  
 ___
 
-## Deploy Galera Cluster  
-
+## Galera Cluster Setup
+___
 Start the Galera Cluster by bootstrapping a server node, which makes the node the primary component from which the other nodes in the cluster can sync.
 The MariaDB service will be stopped on every node that is created until the cluster is initialized on one of the nodes. The initialization of the cluster can
 technically be started on any server node available but typically the start of the cluster will be initialized from the first node (`mdb-01`).
@@ -346,10 +346,10 @@ ___
    ```
    Output should look similar to the image below:  
    ![](img/wsrep_incoming_addresses.png)  
-5. Jump to step 6 in the `MariaDB Server Node and Cluster Setup` section.   
+5. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.   
 ___
 
-## Deploy Galera Arbitrator
+## Galera Arbitrator Setup
 This only needs to be configured on one of the server nodes, **mdb-03** will be selected since it's the odd number node, and the donor node. 
 ___
 1. Install Galera Arbitrator package using the following command:  
@@ -498,10 +498,10 @@ ___
      - day of month (1-31) 
      - month (1-12)
      - day of the week (0-7)
-     - "*" is a wildcard that stands for "any"
+     - "*" - is a wildcard that stands for "any"
      - The expression runs at 7:07 AM every day
-   - **root** indicates the user that the cron job should be run as. 
-   - **garbd --cfg /etc/garbd.cnf** start the galera arbitrator daemon with the **garbd.cnf** configuration file.  
+   - **root** - indicates the user that the cron job should be run as. 
+   - **garbd --cfg /etc/garbd.cnf** - start the galera arbitrator daemon with the **garbd.cnf** configuration file.  
    
    Check the image below on how the text should be placed in the crontab file:  
    ![](img/crontab_config_file.png)  
@@ -509,9 +509,9 @@ ___
    ```shell
    sudo systemctl restart cron
    ```
-8. Jump to step 7 in the `MariaDB Server Node and Cluster Setup` section.  
+8. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.  
 ___
 
-## Create MariaDB Backup Node  
+## MariaDB Backup Node Setup
 
-8. Jump to step 8 in the `MariaDB Server Node and Cluster Setup` section.
+8. Jump to step 8 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-setup) section.
