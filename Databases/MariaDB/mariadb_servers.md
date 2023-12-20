@@ -2,7 +2,8 @@
 ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
     `https://Your-Servers-IP-Address:8006/` 
-2. If a base MariaDB template (`base-mdb-template`) is available right click and clone the VM template and set the following settings below, if not continue in `this` section to step 3:  
+2. If a base MariaDB template (`base-mdb-template`) is available right click and clone the virtual machine template and 
+   set the following settings below, if not continue in `this` section to **step 3**:  
    > Mode = Full Clone  
    > Target Storage = Same as source  
    > Name = mdb-XX (where XX is the server number being created)  
@@ -12,222 +13,25 @@ ___
    > If a migration is needing to be performed to another PROXMOX node then perform the migration first before modifying or starting the virtual machine. 
 
    1. Jump to the `Creating MariaDB Nodes` section.
-   2. Jump to step 5 in `this` section.
-3. If a base ubuntu template (`base-ubuntu-template`) is available right click and clone the VM template and set the following settings below, if not continue in `this` section to step 4:
-
-   > Mode = Full Clone  
-   > Target Storage = Same as source  
-   > Name = base-mdb-template  
-   > Resource Pool = None  
-   > Format = QEMU image format  
-   > VM ID = <next_available_number_in_the_thousands>  
-   
-   1. Jump to the `Create MariaDB VM Template` section.
-   2. Jump to step 2 in `this` section.
-4. If no base Ubuntu template is available then see the `base-ubuntu build sheet` document which should be located under the `scada` share on the research `NAS`.
-   1. Jump to step 3 in `this` section.
-5. Jump to the `Deploy Galera Cluster` section.
-6. Jump to the `Deploy Galera Arbitrator` section.
-7. Jump to the `Create MariaDB Backup Node` section.  
-8. Create the MariaDB HAProxy servers using the `mariadb_haproxy` document. 
-___
-
-## Create MariaDB VM Template
-Create the MariaDB VM template on `pm-01`, convert the VM to a template, and leave the template on `pm-01`.  
-When creating new VMs that need to be under different PROXMOX nodes (pm-01, pm-02, ...pm-XX) perform a full clone of the MariaDB template,
-and then initiate a migration to the necessary PROXMOX node.
-___
-1. Set the parameters for the hardware settings to the values below:
-   > Memory (MiB) = 65536  
-   > Minimum memory (MiB) = 2048  
-   > Shares = Default  
-   > Ballooning Device = True  
-   > Processors Sockets = 2  
-   > Processors Cores = 8  
-
-   See the image below from modifying the hardware parameter settings from above.  
-   ![](img/mariadb_template_hardware_settings.png)  
-2. Update the hostname from `baseubuntu` to `mdb-template` using the following command:
-   ```shell
-   sudo nano /etc/hostname
-   ```
-3. Update the hosts file using the following command:
-    ```shell
-    sudo nano /etc/hosts
-    ```
-   Place the following text into the file:  
-    ```text
-    127.0.1.1 mdb-template
-   # 10.20.X.X mdb-xx.research.pemo mdb-xx
-   # 10.20.1.13 ad-01.research.pemo ad-01
-   # 10.20.5.13 ad-02.research.pemo ad-02 
-   # 10.20.3.13 ad-03.research.pemo ad-03
-    ```
-4. Leave the network interface settings in the `00-installer-config.yaml` yaml file in DHCP.
-5. Allow incoming traffic on the database ports below, using the `ufw` command:  
-    ```shell
-    sudo ufw allow 43/tcp
-    sudo ufw allow 443/tcp
-    sudo ufw allow 3306/tcp
-    sudo ufw allow 4444/tcp
-    sudo ufw allow 4567/tcp
-    sudo ufw allow 4568/tcp
-    sudo ufw allow 4567/udp
-    ```
-   Verify the above rules have been accepted by issuing the below command:  
-   ```shell
-   sudo ufw status
-   ```
-6. Reboot the machine using the following command:
-   ```shell
-   sudo reboot
-   ```
-7. Check for OS updates by issuing the following commands in the order below:
-   ```shell
-   sudo apt-get update
-   sudo apt-get upgrade
-   ```
-8. If prompted to select which daemon services should be restarted, then accept the defaults selections.
-9. Install MariaDB using the following commands:
-   ```shell
-   curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash
-   sudo apt-get install mariadb-server galera-4 mariadb-client libmariadb3 mariadb-backup mariadb-common
-   ```
-10. If prompted to select which daemon services should be restarted, then accept the defaults selections.
-11. Secure the installation and answer the command prompt questions using the below command:  
-    ```shell
-    sudo mariadb-secure-installation
-    ```  
-    You will then be prompted with the below questions:  
-   > Switch to unix_socket authentication: **n**  
-   > Change the root password: **Y** (**<one_rich_cat_one_extra_rich_cat>**)   
-   > Remove anonymous users: **Y**  
-   > Disallow root login remotely: **Y**    
-   > Remove test database and access to it: **Y**   
-   > Reload privilege tables now: Y  
-
-    You can also change the password for the superuser root by issuing the below command:
-    ```shell
-    sudo mariadb u root
-    ```
-    Initiate the following query after being placed in the MariaDB interactive shell:  
-    > MariaDB[(none)] > SET PASSWORD FOR 'root'@localhost = PASSWORD("<**one_rich_cat_one_extra_rich_cat**>");  
-12. Configure the base galera-related settings by issuing the below command:  
-    ```shell
-    sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
-    ```
-    Add any additional commented out lines according to the image below:  
-    ![](img/galera_config_base_settings.png)      
-13. Setup the base Active Directory settings:
-    1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
-       ```shell
-       sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
-       ```
-       When prompt for the kerberos default realm type `RESEARCH.PEMO` then highlight over `Ok` and press enter as in the image below:  
-       ![](img/default_kerberos_realm.png)  
-    2. Update the hosts file with the active directory controllers and the fully qualified domain name for the MariaDB server using the following command:
-       ```shell
-       sudo nano /etc/hosts
-       ```
-       Settings should look similar to the image below:  
-       ![](img/base_ad_hosts_file.png)   
-    3. Edit the Kerberos configuration file using the `nano` command: 
-        ```shell
-        sudo nano /etc/krb5.conf
-        ```
-       Add the following to the end of `[realms]` section:  
-       ```ini
-       RESEARCH.PEMO = {
-                kdc = AD-01.RESEARCH.PEMO
-                kdc = AD-02.RESEARCH.PEMO
-                kdc = AD-03.RESEARCH.PEMO
-                default_domain = RESEARCH.PEMO
-              }
-       ```
-       Add the following to the end of `[domain_realm]` section:  
-       ```ini
-       .research.pemo = .RESEARCH.PEMO
-       research.pemo = RESEARCH.PEMO
-       ```
-    4. Edit the Samba configuration file using the `nano` command:
-        ```shell
-        sudo nano /etc/samba/smb.conf
-        ```
-       Add the following to the `[global]` section: 
-       ```ini
-       workgroup = RESEARCH
-       netbios name = $LINUX_HOSTNAME$
-       realm = RESEARCH.PEMO
-       server string = 
-       security = ads
-       encrypt passwords = yes
-       password server = AD-01.RESEARCH.PEMO
-       log file = /var/log/samba/%m.log
-       max log size = 50
-       socket options = TCP_NODELAY SO_RCVBUF=8192 SO_SNDBUF=8192
-       preferred master = False
-       local master = No
-       domain master = No
-       dns proxy = No
-       idmap uid = 10000-20000
-       idmap gid = 10000-20000
-       winbind enum users = yes
-       winbind enum groups = yes
-       winbind use default domain = yes
-       client use spnego = yes
-       template shell = /bin/bash
-       template homedir = /home/%U
-       ```
-    5. Edit the name service switch configuration file using the `nano` command:
-       ```shell
-        sudo nano /etc/nsswitch.conf
-       ```
-       Add the following to the configuration file: 
-       ```text
-       passwd: compat winbind files systemd
-       group: compat winbind files systemd
-       gshadow: compat winbind files
-       
-       hosts: files dns
-       networks: files
-       
-       protocols: db files
-       services: db files
-       ethers: db files
-       rpc: db files
-       
-       netgroup: nis
-       ```
-    6. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
-       ```shell
-        sudo visudo
-       ```
-       Add the following line to the end of the file:
-       ```text
-       %cansudo All=(ALL:ALL) ALL
-       ```
-    7. Ensure a user's home directory is created upon their first login, using the following command:
-       ```shell
-       sudo pam-auth-update --enable mkhomedir
-       ```
-14. Shutdown the VM using one of following methods:
-    ```shell
-    sudo shutdown
-    ```
-    Exit the console get into the Proxmox hypervisor web interface select the VM and manually shutting down the VM:  
-    ![](img/vm_manual_shutdown.png)  
-15. Make the VM a template with the name `base-maridb-template` by right-clicking on the VM and selecting `Convert to template`:  
-    ![](img/creating_vm_template.png)
-16. Jump to step 2 in the `MariaDB Server Node and Cluster Setup` section. 
+   2. Jump to **step 5** in `this` section.
+3. If a base ubuntu template (**base-ubuntu-template**) is available, see the **mariadb_template** document then return 
+   to **this** document and jump to **step 2** in **this** section, if not continue in **this** section to **step 4**.  
+4. If no base Ubuntu template is available then see the **base-ubuntu build sheet** document which should be located under 
+   the **scada** share on the research **NAS**.  
+   1. Jump to step 3 in **this** section.
+5. Jump to the **Deploy Galera Cluster** section.
+6. Jump to the **Deploy Galera Arbitrator** section.
+7. Jump to the **Create MariaDB Backup Node** section.  
+8. Create the MariaDB HAProxy servers using the **mariadb_haproxy** document. 
 ___
 
 ## Creating MariaDB Server Nodes
 ___
-1. Add a secondary hard disk to the MariaDB node using the `Hardware` section from the content panel:  
+1. Add a secondary hard disk to the MariaDB node using the **Hardware** section from the content panel:  
     ![](img/adding_secondary_hard_disk.png)  
-    Set the hard disk configuration settings based on the following image and ensure that the `Backup` checkbox is `false`:  
+    Set the hard disk configuration settings based on the following image and ensure that the **Backup** checkbox is **false**:  
     ![](img/disk_tab_settings_scsi1.png)
-2. Set the `Start at boot` checkbox to `true` using the `Options` section from the content panel:  
+2. Set the **Start at boot** checkbox to **true** using the **Options** section from the content panel:  
    ![](img/options_start_at_boot.png)   
 3. Start the virtual machine using the `Start` button.
 4. Update the hostname from `mdb-template` to `mdb-XX` (where XX is the server number being creating) using the following command:
@@ -320,24 +124,34 @@ ___
         ```shell
         pvcreate /dev/sdb1
         ```
-     6. Create a new volume group that includes the physical volume that was created in step 6 above:
+     6. If any **ERRORS** occur when performing **steps 3-5** above try the following commands, then repeat **steps 3-5** again:  
+        If the volume group name from step 7 below exist before creating the volume group name then remove it:  
+        ```shell
+        vgdisplay
+        vgremove -f vg-sql
+        ```
+     7. Create a new volume group that includes the new physical volume that was created in step 5 above:
         ```shell
         vgcreate vg-sql /dev/sdb1
         ```
-     7. Create a logical volume that uses 100% of the free space available in new volume group:
+     8. Create a logical volume that uses 100% of the free space available in new volume group:
         ```shell
         lvcreate -n lv-sql --extents 100%FREE vg-sql
         ```
-     8. Create file system of type ext4 (4th extended journaling file system) on the new logical volume:
+     9. Create file system of type ext4 (4th extended journaling file system) on the new logical volume:
          ```shell
          mkfs.ext4 /dev/vg-sql/lv-sql
          ```
-        The volume group and logical volume can be viewed using the commands `vgdisplay` and `lvdisplay`
-     9. Create a directory to mount the new file system:
-        ```shell 
-        mkdir /mnt/sql-data
+        The volume group and logical volume can be viewed using the following commands:  
+        ```shell
+        vgdisplay
+        lvdisplay
         ```
-     10. Type the command `blkid`, copy the UUID of the new file system, and edit the file system table configuration 
+     10. Create a directory to mount the new file system:
+         ```shell 
+         mkdir /mnt/sql-data
+         ```
+     11. Type the command `blkid`, copy the UUID of the new file system, and edit the file system table configuration 
          file using the command below:  
          ```shell 
          nano /etc/fstab
@@ -348,7 +162,7 @@ ___
          ```text
          UUID="<UUID_NUMBER_OF_FILE_SYSTEM>" /mnt/sql-data ext4 defaults 0 1 
          ```
-     11. Type the following command  to mount the additional filesystem that was added to the `/etc/fstab `file:    
+     12. Type the following command  to mount the additional filesystem that was added to the `/etc/fstab `file:    
          ```shell
          mount -a
          ```
