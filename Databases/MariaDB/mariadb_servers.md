@@ -479,12 +479,16 @@ ___
       ```shell
       sudo df -Th
       ```
-6. Test the `garbd` (Galera Arbitrator Daemon) configuration file using the following command:  
+6. Test the **garbd** (Galera Arbitrator Daemon) configuration file using the following command:  
    ```shell 
    sudo garbd --cfg /etc/garbd.cnf
    ```
-7. Edit the crontab using command `sudo nano /etc/crontab` file to schedule `garbd.cnf` file to run automatically at a specified time:  
-   ```ini 
+7. Edit the crontab using the following command:  
+    ```shell
+   sudo nano /etc/crontab
+    ```   
+   Place the following text to schedule **garbd** configuration file to run automatically at a specified time at the end of the file:  
+   ```shell
    7 7 * * * root garbd --cfg /etc/garbd.cnf
    ```
    The crontab expression above is as followed:  
