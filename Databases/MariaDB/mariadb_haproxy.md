@@ -1,7 +1,8 @@
 # MariaDB HAProxy Main Content Steps
 Ensure that there exist a functional MariaDB Galera Cluster before creating the HAProxy Load Balancers.
 HAProxy is a software package that can be installed on Linux flavored operating systems which in turn allows the OS to act as a reverse proxy and 
-load balancer.  
+load balancer. 
+
 > **Reverse Proxy** - sits in front of your server and accepts request from clients on its behalf.   
 > **Load Balancer** - will split incoming requests among a cluster of servers, keeps track of which server got the 
                       last request, and the server that should get the next request utilizing the cluster equally. 
@@ -9,14 +10,15 @@ ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
     `https://Your-Servers-IP-Address:8006/` 
 2. If a base haproxy template (**base-haproxy-template**) is available see the
-   [MariaDB HAProxy Server Node Setup](#Mariadb-haproxy-server-node-setup) section, if not continue to **step 3** in this section:
-3. If a base ubuntu template (`base-ubuntu-template`) is available see **haproxy_template** document then return to this document 
-   and jump to **step 2** in **this** section, if not continue in **this** section to **step 4**.
+   [MariaDB HAProxy Server Node Setup](#Mariadb-haproxy-server-node-setup) section, if not continue to **step 3** in **this section**:
+3. If a base ubuntu template (**base-ubuntu-template**) is available see the **haproxy_template** document then return 
+   to **this document** and jump to **step 2** in **this section**, if not continue in **this section** to **step 4**.
 4. If no base Ubuntu template is available then see the **base-ubuntu build sheet** document which should be located 
-   under the **scada** share on the research **NAS**, then return to **this** section and jump to **step 3**.
-5. None 
-___   
+   under the **scada** share on the research **NAS**, then return to **this section** and jump to **step 3**.
+5. Steps Complete. 
+
 ## MariaDB HAProxy Server Node Setup
+___
 1. Perform a full clone of base haproxy template (**base-haproxy-template**) by right-clicking and then set the following 
    settings below:  
 
@@ -29,10 +31,10 @@ ___
 
    > If a migration is needing to be performed to another PROXMOX node then perform the migration first before modifying or starting the virtual machine. 
 
-2. Set the `Start at boot` checkbox to `true` using the `Options` section from the content panel:  
+2. Set the **Start at boot** checkbox to **true** using the **Options** section from the content panel:  
    ![](img/options_start_at_boot.png)   
-3. Start the virtual machine using the `Start` button.
-4. Update the hostname from `-template` to `mdb-XX` (where XX is the server number being creating) using the following command:
+3. Start the virtual machine using the **Start** button.
+4. Update the hostname from **base-haproxy-template** to **mdbh-XX** (where XX is the server number being creating) using the following command:
    ```shell
    sudo nano /etc/hostname
    ```
@@ -171,5 +173,5 @@ ___
        ```
     10. Open up the `SentinelOne` web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
-14. Repeat steps 1 - 12 above for every MariaDB HAProxy server node created.  
+14. Repeat steps 1 - 13 above for every MariaDB HAProxy server node created.  
 15. Jump to step 5 in the [MariaDB HAProxy Main Content Steps](#mariadb-haproxy-main-content-steps) section.
