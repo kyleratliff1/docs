@@ -1,5 +1,5 @@
 # MariaDB Virtual Machine Template Setup
-Create the MariaDB VM template on `pm-01`, convert the VM to a template, and leave the template on `pm-01`.
+Create and leave the MariaDB VM template on **pm-01**.
 ___
 1. Make a full clone of the template (`base-ubuntu-template`) and set the following settings below:
    > Mode = Full Clone  
