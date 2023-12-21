@@ -24,7 +24,7 @@ ___
    > Resource Pool = None  
    > Format = QEMU image format  
 
-   > If the virtual machine needs be under a different PROXMOX node (pm-01, pm-02, ...pm-XX) then initiate a **migration** 
+   > If the virtual machine needs to be under a different PROXMOX node (pm-01, pm-02, ...pm-XX) then initiate a **migration** 
      to the necessary PROXMOX node before modifying or starting the virtual machine.  
 
 2. Add a secondary hard disk to the MariaDB node using the **Hardware** section from the content panel:  
