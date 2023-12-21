@@ -14,9 +14,7 @@ ___
 7. Jump to the [MariaDB Backup Node Setup](#mariadb-backup-node-setup) section.  
 8. Create the MariaDB HAProxy servers using the **mariadb_haproxy** document. 
 
-## MariaDB Server Node Setup
-If a migration is needing to be performed to another PROXMOX node then perform the migration first 
-before modifying or starting the virtual machine.  
+## MariaDB Server Node Setup 
 ___
 1. Right click and perform a full clone of the base MariaDB template (**base-mdb-template**) and set the following settings below:  
 
@@ -25,60 +23,62 @@ ___
    > Name = mdb-XX (where XX is the server number being created)  
    > Resource Pool = None  
    > Format = QEMU image format  
-   
-2. Add a secondary hard disk to the MariaDB node using the **Hardware** section from the content panel:  
+
+2. If the virtual machine needs be under a different PROXMOX node (pm-01, pm-02, ...pm-XX) then initiate a **migration** 
+   to the necessary PROXMOX node before modifying or starting the virtual machine.  
+3. Add a secondary hard disk to the MariaDB node using the **Hardware** section from the content panel:  
     ![](img/adding_secondary_hard_disk.png)  
     Set the hard disk configuration settings based on the following image and ensure that the **Backup** checkbox is **false**:  
     ![](img/disk_tab_settings_scsi1.png)
-3. Set the **Start at boot** checkbox to **true** using the **Options** section from the content panel:  
+4. Set the **Start at boot** checkbox to **true** using the **Options** section from the content panel:  
    ![](img/options_start_at_boot.png)   
-4. Start the virtual machine using the **Start** button.
-5. Update the hostname from **mdb-template** to **mdb-XX** (where XX is the server number being creating) using the following command:
+5. Start the virtual machine using the **Start** button.
+6. Update the hostname from **mdb-template** to **mdb-XX** (where XX is the server number being creating) using the following command:
    ```shell
    sudo nano /etc/hostname
    ```
-6. Update the hosts file using the following command:  
+7. Update the hosts file using the following command:  
    ```shell
    sudo nano /etc/hosts
    ```
    Remove, update, and uncomment the lines based on the image below with respect to the server being configured:  
    ![](img/server_ad_hosts_file.png)  
-7. Reset the machine ID using the following commands:
+8. Reset the machine ID using the following commands:
    ```shell
    sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
    sudo dbus-uuidgen --ensure=/etc/machine-id
    sudo dbus-uuidgen --ensure
    ```
-8. Regenerate ssh keys using the following commands:
+9. Regenerate ssh keys using the following commands:
    ```shell
    sudo rm /etc/ssh/ssh_host_*
    sudo dpkg-reconfigure openssh-server
    ```
-9. Change the network interface IP address from DHCP to Static by editing the **00-installer-config.yaml** file using the following command:   
-    ```shell
-    sudo nano /etc/netplan/00-installer-config.yaml
-    ```
-   Under the network interface key comment out the **dhcp4** key:value pair and then uncomment the remaining lines and configure the network settings accordingly see the image below:  
-   ![](img/netplan_config_static_ip.png)  
-   IP Address per node server should fall within the following subnets:
+10. Change the network interface IP address from DHCP to Static by editing the **00-installer-config.yaml** file using the following command:   
+     ```shell
+     sudo nano /etc/netplan/00-installer-config.yaml
+     ```
+    Under the network interface key comment out the **dhcp4** key:value pair and then uncomment the remaining lines and configure the network settings accordingly see the image below:  
+    ![](img/netplan_config_static_ip.png)  
+    IP Address per node server should fall within the following subnets:
    > mdb-01 - 10.20.1.14/24 and gateway 10.20.1.1  
    > mdb-02 - 10.20.5.14/24 and gateway 10.20.5.1  
    > mdb-03 - 10.20.3.14/24 and gateway 10.20.3.1  
 
-    Accept the network settings by issuing the command below:  
-    ```shell
-    sudo netplan try
-    ```
-10. Restart the machine using the following command:  
+     Accept the network settings by issuing the command below:  
+     ```shell
+     sudo netplan try
+     ```
+11. Restart the machine using the following command:  
     ```shell
     sudo reboot
     ```
-11. Check for OS updates by issuing the following commands in the order below:  
+12. Check for OS updates by issuing the following commands in the order below:  
     ```shell
     sudo apt-get update
     sudo apt-get upgrade
     ```
-12. Edit MariaDB with Galera cluster configuration file using the command below: 
+13. Edit MariaDB with Galera cluster configuration file using the command below: 
     ```shell
     sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
     ```
@@ -90,7 +90,7 @@ ___
     wsrep_node_address = "10.20.X.X" # This will be updated per server node being created
     wsrep_node_name = "mdb-xx" # This will be updated per server node being created.
     ```
-13. Format and partition the secondary disk:
+14. Format and partition the secondary disk:
      1. Switch to the root user account using the command below this will prevent having to type `sudo` for every superuser command typed:
         ```shell
         sudo su
@@ -173,7 +173,7 @@ ___
          df -Th
          ```
          Reboot the machine and use the same command above to verify the filesystem mounts on boot up.  
-14. Edit the MariaDB server configuration file `/etc/mysql/mariadb.conf.d/50-server.cnf` using the following command:  
+15. Edit the MariaDB server configuration file `/etc/mysql/mariadb.conf.d/50-server.cnf` using the following command:  
     ```shell 
     sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
     ```
@@ -183,23 +183,23 @@ ___
     ![](img/mariadb_50_server_log.png)  
     Add the following system variables to the bottom of `[mariadbd]` section to enable the MariaDB server audit plugin:  
     ![](img/mariadb_50_server_audit_log_plugings.png)  
-15. Stop the MariaDB service using the following command:
+16. Stop the MariaDB service using the following command:
     ```shell 
     sudo systemctl stop mariadb.service
     ```
-16. Create a data directory using the following command:
+17. Create a data directory using the following command:
     ```shell 
     sudo mkdir /mnt/sql-data/data
     ```
-17. Change the ownership and contents of the data directory recursively to the mysql user and mysql group:
+18. Change the ownership and contents of the data directory recursively to the mysql user and mysql group:
     ```shell
     sudo chown -R mysql:mysql /mnt/sql-data
     ```
-18. Copy everything from `/var/lib/mysql/` directory to the data directory recursively while preserving the file attributes using the command below:
+19. Copy everything from `/var/lib/mysql/` directory to the data directory recursively while preserving the file attributes using the command below:
     ```shell
     sudo cp -R -p /var/lib/mysql/* /mnt/sql-data/data
     ```
-19. Start the MariaDB service using the following command:
+20. Start the MariaDB service using the following command:
     ```shell 
     sudo systemctl start mariadb.service
     ```
@@ -211,17 +211,17 @@ ___
     ```shell 
     sudo systemctl is-active mariadb.service
     ```
-20. Verify that `datadir` system variable holds the new path to the data directory using the command:
+21. Verify that `datadir` system variable holds the new path to the data directory using the command:
     ```shell
     mariadb -u root -p -e "SELECT @@datadir"
     ```
     Output should look like the image below:  
     ![](img/datadir_sys_var.png)  
-21. Stop the MariaDB service using the following command:
+22. Stop the MariaDB service using the following command:
     ```shell 
     sudo systemctl stop mariadb.service
     ```
-22. Join the MariaDB server to the Active Directory:
+23. Join the MariaDB server to the Active Directory:
     1. Edit the Samba configuration file using the following command:
        ```shell 
        sudo nano /etc/samba/smb.conf
@@ -256,7 +256,7 @@ ___
        This command will return a list of users from the domain that is connected via `winbind`.  
 
     5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
-23. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
+24. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
     will explain how to install `SentinelOne` by mounting a NAS (network attached storage) device then accessing the install files
     on the NAS. There are other methods for installation along with uninstalling, and upgrading `SentinelOne`, if any
     other method is needed then see the `SentinelOne` setup document that's under a PEMO Site Automation GitHub repository.  
@@ -312,8 +312,8 @@ ___
        ```
     10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
-24. Repeat steps 1 - 21 above for every MariaDB server node created.  
-25. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
+25. Repeat steps 1 - 21 above for every MariaDB server node created.  
+26. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
 
 ## Galera Cluster Setup
 Start the Galera Cluster by bootstrapping a server node, which makes the node the primary component from which the other nodes in the cluster can sync.
