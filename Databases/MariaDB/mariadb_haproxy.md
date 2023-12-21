@@ -29,7 +29,8 @@ ___
    > Format = QEMU image format    
    > VM ID = <next_available_address>  
 
-   > If a migration is needing to be performed to another PROXMOX node then perform the migration first before modifying or starting the virtual machine. 
+   > If the virtual machine needs to be under a different PROXMOX node (pm-01, pm-02, ...pm-XX) then initiate a **migration** 
+     to the necessary PROXMOX node before modifying or starting the virtual machine.  
 
 2. Set the **Start at boot** checkbox to **true** using the **Options** section from the content panel:  
    ![](img/options_start_at_boot.png)   
