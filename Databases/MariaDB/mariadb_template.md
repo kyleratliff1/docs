@@ -1,7 +1,5 @@
 # MariaDB Virtual Machine Template Setup
-Create the MariaDB VM template on `pm-01`, convert the VM to a template, and leave the template on `pm-01`.  
-When creating new VMs that need to be under different PROXMOX nodes (pm-01, pm-02, ...pm-XX) perform a full clone 
-of the MariaDB template, and then initiate a migration to the necessary PROXMOX node.
+Create the MariaDB VM template on `pm-01`, convert the VM to a template, and leave the template on `pm-01`.
 ___
 1. Make a full clone of the template (`base-ubuntu-template`) and set the following settings below:
    > Mode = Full Clone  
