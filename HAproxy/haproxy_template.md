@@ -134,9 +134,13 @@ ___
    > **priority** - The MASTER (101) will have a higher priority than the BACKUP (100).  
    > **virtual_ipaddress** - Check the available ip addresses in the 10.20.20.0/24 network.
 
-13. Create the **keepalived_script** user:  
+13. Create a new group and user for the **keepalived_script** script:  
+   Create a new group named **keepalived_script** using the following command:   
    ```shell
    sudo groupadd -r keepalived_script
+   ```
+   Create a new user named **keepalived_script** using the following command:  
+   ```shell
    sudo useradd -r -s /sbin/nologin -g keepalived_script -M keepalived_script
    ```
 14. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
