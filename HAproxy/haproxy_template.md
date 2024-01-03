@@ -63,7 +63,7 @@ ___
    one system takes over another system's IP address if that system fails.**  
 10. Add and install the HAProxy repository, target package, and hard dependencies using the following command:  
     ```shell
-    apt-get install --no-install-recommends software-properties-common
+    sudo apt install --no-install-recommends software-properties-common
     ```
     Add the vbernat/haproxy-2.8 PPA (Personal Package Archive) to the systems software repositories:  
     ```shell
@@ -71,10 +71,14 @@ ___
     ```
     Install haproxy package in the 2.8.x range or greater:  
     ```shell
-    apt-get install haproxy=2.8.\*
+    sudo apt install haproxy=2.8.\*
     ```
-    **Note: if there exist a newer LTS ONLY VERSION past 2.8 then simply replace 2.8 with the latest **LTS** version.** 
-11. Create the base main **keepalived** file for load balancing and high-availability using the following command:
+    **Note: if there exist a newer LTS ONLY VERSION past 2.8, then simply replace 2.8 with the latest **LTS** version.** 
+11. Install **keepalived** package using the following command:  
+    ```shell
+    sudo apt install keepalived
+    ```
+12. Create the base main **keepalived** file for load balancing and high-availability using the following command:
     ```shell
     sudo nano /etc/keepalived/keepalived.conf
     ```
@@ -130,12 +134,12 @@ ___
    > **priority** - The MASTER (101) will have a higher priority than the BACKUP (100).  
    > **virtual_ipaddress** - Check the available ip addresses in the 10.20.20.0/24 network.
 
-12. Create the **keepalived_script** user:  
+13. Create the **keepalived_script** user:  
    ```shell
    sudo groupadd -r keepalived_script
    sudo useradd -r -s /sbin/nologin -g keepalived_script -M keepalived_script
    ```
-13. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
+14. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
     ```shell
     sudo visudo
     ```
@@ -145,7 +149,7 @@ ___
     ```
     The updated **sudoers** configuration file should look similar to the image below:  
     ![](img/sudoers_temp_file.png)  
-14. Ensure that the **keepalived** and **haproxy** service is stopped and disabled to prevent the services from starting 
+15. Ensure that the **keepalived** and **haproxy** service is stopped and disabled to prevent the services from starting 
     at boot, using the following commands:  
     ```shell
     sudo systemctl disable --now keepalived
@@ -156,7 +160,7 @@ ___
     sudo systemctl is-active keepalived
     sudo systemctl is-active haproxy
     ```
-15. Setup the base Active Directory settings:
+16. Setup the base Active Directory settings:
     1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
        ```shell
        sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
@@ -251,5 +255,5 @@ ___
        ```shell
        sudo pam-auth-update --enable mkhomedir
        ```
-16. Shutdown the VM.  
-17. Make the VM a template by right-clicking on the VM and selecting **Convert to template**.  
+17. Shutdown the VM.  
+18. Make the VM a template by right-clicking on the VM and selecting **Convert to template**.  
