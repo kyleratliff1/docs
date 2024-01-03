@@ -1,9 +1,9 @@
 # HAProxy Virtual Machine Template Setup
-This document is merely to give a starting point for an HAProxy VM with base settings. When creating a clone of this template
-parameter value placeholders that exist in various configuration files will need to be updated, additional configuration files 
+This document is merely to give a starting point for an HAProxy VM with base settings. When creating a clone of this template,
+the parameter value placeholders that exist in various configuration files will need to be updated, additional configuration files 
 might need to be created, and existing or new daemon services will need to started. 
 ___
-1. Make a full clone of the template (`base-ubuntu-template`) and set the following settings below:
+1. Make a full clone of the template (**base-ubuntu-template**) and set the following settings below:
 
    > Mode = Full Clone  
    > Target Storage = Same as source  
@@ -185,21 +185,21 @@ ___
 
     # Virtual interface
     vrrp_instance VI_01 {
-            # Default state of the node as either a Master or Slave, uncomment only one of state parameters.
+            # The state of the node is either MASTER or BACKUP, uncomment only one of state parameters.
             state MASTER
             #state BACKUP
             interface ens18
             # Use the last octet of the shared virtual ip address to set the id.
-            virtual_router_id 11
-            # The priority specifies the order in which the assigned interface to take over in a failover.
-            # Higher priority value sets the node as active and the other as standby, uncomment only one of the priority parameters.
+            virtual_router_id XX
+            # The priority specifies the order in which the assigned interface will take over in case of a fail over.
+            # Higher priority value sets the node as MASTER and the other as BACKUP, uncomment only one of the priority parameters.
             priority 101
             #priority 100
 
             # The virtual ip address shared between the two load balancers.
-            # This will change per active/standby pair.
+            # This will change per master/backup pair.
             virtual_ipaddress {
-                    10.20.20.11
+                    10.20.X.X
             }
 
             # Associate the health check script check_haproxy with the VRRP instance.
@@ -208,13 +208,13 @@ ___
             }
     }
     ```
-    **The configuration file will need to be created and the following parameters will change per active/standby pair:**
-   > lvs_id
-   > state  
-   > interface - Interface parameter may or may not change check the interface name being used.  
-   > virtual_router_id  
-   > priority  
-   > virtual_ipaddress
+    **NOTE: The configuration file will need to be updated and the following parameters will change per MASTER/BACKUP pair:**
+
+   > **state** - If one node is the MASTER the other will be the BACKUP.  
+   > **interface** - Check the interface name being used.   
+   > **virtual_router_id** - Use the last octet of the virtual ip address.  
+   > **priority** - The MASTER (101) will have a higher priority than the BACKUP (100).  
+   > **virtual_ipaddress** - Check the available ip addresses in the 10.20.20.0/24 network.
 
 13. Create the **keepalived_script** user:  
    ```shell
@@ -231,13 +231,16 @@ ___
     ```
     The updated **sudoers** configuration file should look similar to the image below:  
     ![](img/sudoers_temp_file.png)  
-15. Ensure that the **keepalived** service is stopped using the following command:  
+15. Ensure that the **keepalived** and **haproxy** service is stopped and disabled to prevent the services from starting 
+    at boot, using the following commands:  
     ```shell
-    sudo systemctl stop keepalived
+    sudo systemctl disable --now keepalived
+    sudo systemctl disable --now haproxy
     ```
-    The status of the **keepalived** service can be checked using the following command:  
+    The status of the **keepalived** and **haproxy** service can be checked using the following commands:   
     ```shell
-    sudo systemctl status keepalived
+    sudo systemctl is-active keepalived
+    sudo systemctl is-active haproxy
     ```
 16. Shutdown the VM.  
-17. Make the VM a template by right-clicking on the VM and selecting `Convert to template`.  
+17. Make the VM a template by right-clicking on the VM and selecting **Convert to template**.
