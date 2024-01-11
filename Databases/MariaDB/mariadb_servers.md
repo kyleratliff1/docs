@@ -189,32 +189,26 @@ ___
        should be the only variable that needs to be updated across each server node configuration file. See the image
        below for clarification:  
        ![](img/samba_server_config_file.png)  
-    2. Enable and restart the **Samba** service to start up automatically at boot using the following commands:   
+    2. Start and enable the **Samba** service using the following command:   
        ```shell
        sudo systemctl enable --now smbd
-       ``` 
-       ```shell
-       sudo systemctl restart smbd
        ```
-    3. Join the machine to active directory domain using the following command:
+    3. Join the machine to active directory domain using the following command:  
        ```shell
        sudo net ads join -S AD-01.RESEARCH.PEMO -U <user_in_ad_domain>
        ```
        **NOTE:** **<user_in_ad_domain>** - is a user who has privileges in the AD domain to add a computer.  
-    4. Enable and restart the **winbind** service to start up automatically at boot using the following commands:
+    4. Start and enable the **winbind** service using the following command:  
        ```shell
        sudo systemctl enable --now winbind
        ```
-       ```shell
-       sudo systemctl restart winbind
-       ```
-       Verify that **winbind** service established a connection to the active directory domain by running the command below:
+       Verify that **winbind** service established a connection to the active directory domain by running the command below:  
        ```shell
        sudo wbinfo -u
        ```
-       **NOTE:** This command will return a list of users from the domain that is connected via **winbind**.  
+       **NOTE:** This command will return a list of users from the domain that is connected via **winbind**.   
 
-    5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
+    5. Verify AD login acceptance into the machine by logging out and in with your AD account.  
 21. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
     > The following sub steps will explain how to install **SentinelOne** by mounting a NAS (network attached storage) 
       device, then accessing the installation files on the NAS. There are other methods for installation along with uninstalling, 
@@ -263,7 +257,7 @@ ___
        ```shell
        sudo chown <user or user:group> /mnt/scada/nas
        ```
-    9. Once in the `SentinelOne` directory execute the shell script `sentinelone_linux_agent_install.sh` using the following command:  
+    9. Once in the **SentinelOne** directory execute the shell script **sentinelone_linux_agent_install.sh** using the following command:  
        ```shell
        sudo ./sentinelone_linux_agent_install.sh
        ```
