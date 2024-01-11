@@ -44,6 +44,12 @@ ___
    ```
    Remove, update, and uncomment the lines based on the image below with respect to the server being configured:  
    ![](img/server_ad_hosts_file.png)  
+   IP Address per node server should fall within the following subnets:  
+   
+   > mdb-01 - 10.20.1.14/24 and gateway 10.20.1.1  
+   > mdb-02 - 10.20.5.14/24 and gateway 10.20.5.1  
+   > mdb-03 - 10.20.3.14/24 and gateway 10.20.3.1  
+
 7. Reset the machine ID using the following commands:
    ```shell
    sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
@@ -62,6 +68,7 @@ ___
    Under the network interface key comment out the **dhcp4** key:value pair and then uncomment the remaining lines and configure the network settings accordingly see the image below:  
    ![](img/netplan_config_static_ip.png)  
    IP Address per node server should fall within the following subnets:
+   
    > mdb-01 - 10.20.1.14/24 and gateway 10.20.1.1  
    > mdb-02 - 10.20.5.14/24 and gateway 10.20.5.1  
    > mdb-03 - 10.20.3.14/24 and gateway 10.20.3.1  
