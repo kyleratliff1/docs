@@ -72,16 +72,12 @@ ___
    > mdb-01 - 10.20.1.14/24 and gateway 10.20.1.1  
    > mdb-02 - 10.20.5.14/24 and gateway 10.20.5.1  
    > mdb-03 - 10.20.3.14/24 and gateway 10.20.3.1  
-
-     Accept the network settings by issuing the command below:  
-     ```shell
-     sudo netplan try
-     ```
+   
 10. Update and upgrade the operating system using the following commands:   
     ```shell
     sudo apt update && sudo apt upgrade -y
     ```
-    **NOTE:** If prompted to select which daemon services should be restarted, then accept the defaults selections, 
+    **NOTE:** If prompted to select which daemon services should be restarted, then accept the default selections, 
     press the **tab** key to navigate between the selections. 
 11. Restart the machine using the following command:  
     ```shell
