@@ -400,7 +400,7 @@ ___
       ```
    2. Create the backup directory on the NAS using the web interface (recommended) or terminal:
       1. Web Interface:
-         1. Open a web browser and enter the [CNAS-01](http://cnas-01.research.pemo:5000/) url.   
+         1. Open a web browser and enter the url [http://cnas-01.research.pemo:5000/](http://cnas-01.research.pemo:5000/).  
          2. Open the **Control Panel > Share Folder**, create a new share folder with the name **mdb-backup** and set new share folder with the following settings:  
             General Tab:  
             ![](img/shared_folder_general.png)  
@@ -418,13 +418,13 @@ ___
          ```shell
          mkdir mdb-backup
          ```
-   3. Install the NFS command files package on mdb-03 using the following command:
+   3. Install the NFS common packages on mdb-03 using the following command:
       ```shell
       sudo apt install nfs-common
       ```
    4. Mount the cnas-01 (external NFS share) on mdb-03 (local system) using the following command:
       ```shell
-      sudo mount -t nfs cnas-02.research.pemo:/volume1/mdb-backup /mnt/mdb_data_backups/nas
+      sudo mount -t nfs cnas-01.research.pemo:/volume1/mdb-backup /mnt/mdb_data_backups/nas
       ```
       Verify the mount using the **df** command to display the filesystem type in a human-readable format.
       ```shell
