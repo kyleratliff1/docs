@@ -90,13 +90,13 @@ ___
     sudo apt update && sudo apt upgrade -y
     ```
     **NOTE:** If prompted to select which daemon services should be restarted, then accept the default selections, 
-    press the **tab** key to navigate between the selections. 
-11. Shutdown the machine using the following command:  
+    press the **tab** key to navigate between the selections.
+11. Edit the **Network Device** from the **Hardware** settings of the VM, and assign **VLAN Tag** 20, as in the image below:  
+    ![](img/vm_nic_vlan_tag.png)   
+12. Reboot the machine using the following command:  
      ```shell
-     sudo shutdonw now
+     sudo reboot
      ```
-12. Edit the **Network Device** from the **Hardware** settings of the VM, and assign **VLAN Tag** 20, as in the image below:  
-    ![](img/vm_nic_vlan_tag.png)    
 13. Setup the firewall rules to allow incoming traffic from the following types of traffic:  
     **MariaDB database:**
     ```shell
