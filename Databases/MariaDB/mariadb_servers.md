@@ -272,7 +272,7 @@ ___
        ```
     10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
-22. Repeat steps 1 - 22 above, for every MariaDB server node created.  
+22. Repeat steps 1–21 above, for every MariaDB server node created.  
 23. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
 
 ## Galera Cluster Setup
