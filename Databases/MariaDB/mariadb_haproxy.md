@@ -8,7 +8,7 @@ load balancer.
                       last request, and the server that should get the next request utilizing the cluster equally. 
 ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
-    `https://Your-Servers-IP-Address:8006/` 
+    [https://Your-Servers-IP-Address:8006/ ](https://Your-Servers-IP-Address:8006/)
 2. If a base haproxy template (**base-haproxy-template**) is available see the
    [MariaDB HAProxy Server Node Setup](#Mariadb-haproxy-server-node-setup) section, if not continue to **step 3** in **this section**:
 3. If a base ubuntu template (**base-ubuntu-template**) is available see the **haproxy_template** document then return 
@@ -109,7 +109,7 @@ ___
     Update **keepalived.conf** file according to the image below:  
     ![](img/keepalived_mariadb_haproxy.png)   
     
-    **NOTE 1: The configuration file will need to be updated and the following parameters will change per MASTER/BACKUP pair:**
+    **NOTE**: The configuration file will need to be updated and the following parameters will change per MASTER/BACKUP pair:  
 
    > **state** - If one node is the MASTER, the other will be the BACKUP.  
    > **interface** - Check the interface name being used.   
@@ -130,8 +130,9 @@ ___
             bind 10.20.20.11:8404
             # The MASTER/BACKUP IP address and port number used to create another instance of the stats web server 
             # to allow a haproxy load balancer listen section to be created and displayed on the stats web page 
-            # that'll show the health status of the haproxy load balancers. Only uncomment one bind parameter that's 
-            # based on the localhost for which the configuration is being configured for. 
+            # that'll show the health status of the haproxy load balancers. 
+            
+            # Only uncomment one bind parameter that's based on the localhost for which the configuration is being configured for. 
             #bind 10.20.20.12:10404
             #bind 10.20.20.13:10404
             stats enable
@@ -159,31 +160,25 @@ ___
     ```
     The updated **haproxy.cfg** file should look similar to the image below:  
     ![](img/haproxy_config_mariadb.png)  
-    
-    **frontend stats**:  
-   > **frontend stats** - Create a frontend named "stats". Defines how request should be listened for and what initial
-     processing should be carried out.  
-   > **bind 10.20.20.12:8404** -  The local IP address and port that HAProxy will listen for incoming connections.
-     Comment and uncomment only one IP address.   
 
-   **listen galera section**:   
-   > **listen galera** - Create a listen configuration named "galera".  
+   **listen mariadb_galera_cluster section**:   
+   > **listen mariadb_galera_cluster** - Create a listen configuration named "mariadb_galera_cluster".  
    > **bind 10.20.20.11:3306 transparent** - HAProxy will listen on the specified IP address using transparent proxying,
      preserving client connection information.  
    > **balance source** - The load balancing algorithm is set to source, meaning it will choose which server to send client
      requests to based on the client's IP address.  
    > **option tcpka** - This enables TCP keep-alive on client and server sides.   
    > **option mysql-check user haproxy** - Enables a health check that specifically checks if a MariaDB server is healthy.
-     The user haproxy is used for performing health checks, this user needs to be created in each MariaDB server and has
-     enough privileges to log in and execute commands necessary for the health check.  
+     The user haproxy is used for performing health checks, this user needs to be created in each MariaDB server and should
+     have enough privileges to log in and execute commands, necessary for the health check.  
    > **server mdb-XX 10.20.Y.Y:3306 check weight 1** - Defines a server within a backend or listening group. The "check" word 
      tells HAProxy to periodically check the health of the MariaDB server by attempting a connection and if the server doesn't respond 
-     to the health check then HAProxy will stop sending traffic until it starts responding successfully the health check again.
+     to the health check then HAProxy will stop sending traffic until the server starts responding to health check again.
      The "weight 1" option informs HAProxy of the server's importance relative to other servers in the cluster. A higher weight
-     means it will handle more connections.
+     means it will handle more connections. In this case all servers are treated equally. 
    
-15. In each MariaDB server specify the two mariadb haproxy nodes from which the haproxy user 
-    can connect to the MariaDB databases, using the following SQL commands from the mariadb shell:  
+15. In each MariaDB server specify the two MariaDB HAProxy server nodes from which the HAProxy user 
+    can connect to the MariaDB databases, using the following SQL commands from the MariaDB shell.   
     Access the MariaDB shell as the root user and prompt for the root password:  
     ```shell
     sudo mariadb -u root -p
@@ -197,65 +192,80 @@ ___
     ```sql
     SELECT User, Host FROM mysql.user;
     ```
-    **NOTE: If an error is received when attempting to create the user on the other nodes, then run the SQL command above
-    to verify if the user already exist because the user may have been propagated to the other MariaDB servers from the
-    initial creation since a high-availability cluster exist.***  
+    **NOTE:** Since a MariaDB Galera cluster exists, the initial creation of the haproxy user should have been 
+    propagated to the other MariaDB servers, access the MariaDB shell from the other servers and issue the SQL command 
+    above to verify. 
 
-16. Enable and start the **keepalived** and **haproxy** service using the following commands:  
+16. Start and enable the **keepalived** and **haproxy** services using the following commands:  
     ```shell
     sudo systemctl enable --now keepalived
+    ```
+    ```shell
     sudo systemctl enable --now haproxy
     ```
-    The status of the **keepalived** and **haproxy** service can be checked using the following commands:   
+    The status of the **keepalived** and **haproxy** services can be checked using the following commands:   
     ```shell
     sudo systemctl is-active keepalived
+    ```
+    ```shell
     sudo systemctl is-active haproxy
     ```
-17. You can verify the state of each Keepalived node by examining the Keepalived logs:
+17. You can verify the state of each Keepalived service by examining the Keepalived logs on each MariaDB HAProxy node:  
     ```shell
-    grep "Keepalived" /var/log/syslog
+    sudo grep "Keepalived" /var/log/syslog
     ```
-
-18. Join the MariaDB server to the Active Directory:  
+    **NOTE:** This command will go through the 'syslog' file, line by line, and print out any lines that contain 
+    the word "Keepalived".  
+18. Open a web browser and type the url [http://10.20.20.11:8404/stats](http://10.20.20.11:8404/stats)
+    to access the HAProxy stats web page.  
+    If all the MariaDB and HAproxy servers are operating correctly, then frontend and listen tables will be displayed, where 
+    each row corresponds to a server and a color green indicates the server is active and up. A legend is displayed that'll See the image below:   
+    ![](img/mariadb_haproxy_stats_page.png)  
+19. Access AD-01 and bind the virtual IP to the hostname **mdb.research.pemo** using the following steps:  
+    1. Open the **DNS** tools from the **Microsoft Server Manager**, see the image below:   
+       ![](img/dns_tools_server_manager.png)  
+    2. Create a new host in the **research.pemo** domain under the **Foward Lookup Zones**, see the image below:  
+       ![](img/research_domain_in_ad.png)
+    3. Bind a new hostname to the virtual IP, see the image below:  
+       ![](img/new_host_in_research_domain.png)  
+20. Open a web browser and type the url [http://mdb.research.pemo:8404/stats](http://mdb.research.pemo:8404/stats)
+    to verify that the binding of the new hostname and virtual IP.  
+21. Join the MariaDB HAProxy server to the Active Directory:  
     1. Edit the Samba configuration file using the following command:
        ```shell 
        sudo nano /etc/samba/smb.conf
        ```
-       Update the value of the variable `netbios name` to the server node name being created in the `[global]` section. This 
-       should be the only variable that needs to be updated across each server node configuration file. See the image
+       Update the value of the variable **netbios name** to the server node name being created in the **[global]** section. This 
+       should be the only variable that needs to be updated across each server node configuration file. See the image   
        below for clarification:  
        ![](img/samba_server_config_mariadb_haproxy.png)  
-    2. Enable and restart the `Samba` service to start up automatically at boot using the following commands:   
+    2. Start and enable the **Samba** service using the following command:   
        ```shell
-       sudo systemctl enable smbd
-       ``` 
-       ```shell
-       sudo systemctl restart smbd
+       sudo systemctl enable --now smbd
        ```
-    3. Join the machine to active directory domain using the following command:
+    3. Join the machine to active directory domain using the following command:  
        ```shell
        sudo net ads join -S AD-01.RESEARCH.PEMO -U <user_in_ad_domain>
        ```
-       `<user_in_ad_domain>` - is a user who has privileges in the AD domain to add a computer.  
-    4. Enable and restart the `winbind` service to start up automatically at boot using the following commands:
+       **<user_in_ad_domain>** - is a user who has privileges in the AD domain to add a computer.  
+    4. Start and enable the **winbind** service using the following command:  
        ```shell
-       sudo systemctl enable winbind
+       sudo systemctl enable --now winbind
        ```
-       ```shell
-       sudo systemctl restart winbind
-       ```
-       Verify that `winbind` service established a connection to the active directory domain by running the command below:
+       Verify that **winbind** service established a connection to the active directory domain by running the command below:
        ```shell
        sudo wbinfo -u
        ```
-       This command will return a list of users from the domain that is connected via `winbind`.  
+       **NOTE:** This command will return a list of users from the domain that is connected via **winbind**.  
 
     5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
-19. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
-    will explain how to install `SentinelOne` by mounting a NAS (network attached storage) device then accessing the install files
-    on the NAS. There are other methods for installation along with uninstalling, and upgrading `SentinelOne`, if any
-    other method is needed then see the `SentinelOne` setup document that's under a PEMO Site Automation GitHub repository.  
-    1. Check that the latest `SentinelOne` package is on the research scada share if not then you can download the last package
+22. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
+    > The following sub steps will explain how to install **SentinelOne** by mounting a NAS (network attached storage) 
+      device, then accessing the installation files on the NAS. There are other methods for installation along with uninstalling, 
+      and upgrading **SentinelOne**, if any other method is needed then see the **SentinelOne** setup document that's 
+      under a PEMO Site Automation GitHub repository.  
+    
+    1. Check that the latest **SentinelOne** package is on the research scada share if not then you can download the last package
        then replace the existing package, see the image below on finding the latest package on the web management console:  
        ![](./img/sentinels_packages.png)  
     2. Make note and verify the site token for the site that the machine will join, the site token for a site can be found using
@@ -263,7 +273,7 @@ ___
        ![](./img/settings_sites.png)  
     3. Install the network file system packages if not already installed using the following command:   
        ```shell
-       sudo apt install nfs-common
+       sudo apt install nfs-common -y
        ```
     4. Create a NFS directory on the local machine to share using a similar command to the following:  
        ```shell
@@ -277,11 +287,12 @@ ___
        ```shell
        showmount -e cnas-01.research.pemo
        ```
+       The following image will show the NFS shares available, from issuing the above command:  
+       ![](./img/nfs_shares_available_on_server.png)   
        If the NFS share is not available then check the following on the NAS:  
        - Ensure the share folder is created.  
        - Check the location of the share folder.  
        - Check the NFS permission rules.  
-       - See step 5 under `Deploy Galera Arbitrator` section for more solutions.  
 
     7. Mount the external NFS share on machine using a similar command to the following:  
        ```shell
@@ -289,23 +300,23 @@ ___
        ```
     8. Change directories to the location where the files and shell script are located using a similar command to the following:  
        ```shell
-       sudo cd /mnt/scada/nas/program_install_files/sentinel_one
+       cd /mnt/scada/nas/program_install_files/sentinel_one
        ```
-       If denied access to the NFS share then change owner of the directory using a similar command to the following:  
+       **NOTE:** If denied access to the NFS share then change owner of the directory using a similar command to the following:  
        ```shell
        sudo chown <user or user:group> /mnt/scada/nas
        ```
-    9. Once in the `SentinelOne` directory execute the shell script `sentinelone_linux_agent_install.sh` using the following command:  
+    9. Once in the **SentinelOne** directory execute the shell script **sentinelone_linux_agent_install.sh** using the following command:  
        ```shell
        sudo ./sentinelone_linux_agent_install.sh
        ```
-       Ensure that the latest packages from step 1 is in the directory and that the shell script contains the correct path 
-       to the latest package and site token (with respect to the site that the machine will join).
+       **NOTE:** Ensure that the latest packages from step 1, are in the directory and that the shell script 
+       contains the correct path to the latest package and site token (with respect to the site that the machine will join).
        Use the following command to open the shell script, if necessary:  
        ```shell
        sudo nano sentinelone_linux_agent_install.sh
        ```
-    10. Open up the `SentinelOne` web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
-        ![](./img/sentinels_endpoints.png)  
-20. Repeat steps 1 - 13 above for every MariaDB HAProxy server node created.  
-21. Jump to step 5 in the [MariaDB HAProxy Main Content Steps](#mariadb-haproxy-main-content-steps) section.
+    10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
+        ![](./img/sentinels_endpoints.png)     
+23. Repeat steps 1 - 21 above for every MariaDB HAProxy server node created.  
+24. Jump to step 5 in the [MariaDB HAProxy Main Content Steps](#mariadb-haproxy-main-content-steps) section.  
