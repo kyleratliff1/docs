@@ -70,14 +70,15 @@ ___
      ```shell
      sudo netplan try
      ```
-10. Restart the machine using the following command:  
+10. Update and upgrade the operating system using the following commands:   
+    ```shell
+    sudo apt update && sudo apt upgrade -y
+    ```
+    **NOTE:** If prompted to select which daemon services should be restarted, then accept the defaults selections, 
+    press the **tab** key to navigate between the selections. 
+11. Restart the machine using the following command:  
     ```shell
     sudo reboot
-    ```
-11. Check for OS updates by issuing the following commands in the order below:  
-    ```shell
-    sudo apt-get update
-    sudo apt-get upgrade
     ```
 12. Edit MariaDB with Galera cluster configuration file using the command below: 
     ```shell
@@ -91,116 +92,73 @@ ___
     wsrep_node_address = "10.20.X.X" # This will be updated per server node being created
     wsrep_node_name = "mdb-xx" # This will be updated per server node being created.
     ```
-13. Format and partition the secondary disk:
-     1. Switch to the root user account using the command below this will prevent having to type `sudo` for every superuser command typed:
-        ```shell
-        sudo su
-        ```
-     2. Find the secondary disk that will be formatted by typing the following command:
-        ```shell
-        fdisk -l
-        ```
-        The file structure path for the secondary hard disk should look like **/dev/sdb**.   
-     3. Once the disk is located start the partition process by typing the following command which redirects to the parted shell:
-        ```shell
-         parted /dev/sdb
-        ```
-         In the parted shell create a new disk label of type GPT (GUID Partition Table):
-        ```shell
-        mklabel gpt
-        ```
-         In the parted shell change the unit of measurement to terabytes and then type the `print` command to see the changes:
-        ```shell
-        unit TB
-        ```
-     4. In the parted shell make a new primary partition that spans from the beginning of the disk to the max size by issuing the following command then exit out of the parted shell by typing `quit`:
-         ```shell
-        mkpart primary 0.00TB 8.80TB
-        ```
-        The secondary storage should now be partitioned. You can easily tell if a partition was created by identifying 
-        a number that's appended to the end of the secondary devices name, which would look like **/dev/sdb1** type the  
-        following command to verify:  
-        ```shell
-        fdisk -l
-        ```
-     5. Create and prepare a physical volume for use by issuing the following command:
-        ```shell
-        pvcreate /dev/sdb1
-        ```
-     6. If any **ERRORS** occur when performing **steps 3-5** above try the following commands, then repeat **steps 3-5** again:  
-        If the volume group name from step 7 below exist before creating the volume group name then remove it:  
-        ```shell
-        vgdisplay
-        vgremove -f vg-sql
-        ```
-     7. Create a new volume group that includes the new physical volume that was created in step 5 above:
-        ```shell
-        vgcreate vg-sql /dev/sdb1
-        ```
-     8. Create a logical volume that uses 100% of the free space available in new volume group:
-        ```shell
-        lvcreate -n lv-sql --extents 100%FREE vg-sql
-        ```
-     9. Create file system of type ext4 (4th extended journaling file system) on the new logical volume:
-         ```shell
-         mkfs.ext4 /dev/vg-sql/lv-sql
-         ```
-        The volume group and logical volume can be viewed using the following commands:  
-        ```shell
-        vgdisplay
-        lvdisplay
-        ```
-     10. Create a directory to mount the new file system:
-         ```shell 
-         mkdir /mnt/sql-data
-         ```
-     11. Type the command `blkid`, copy the UUID of the new file system, and edit the file system table configuration 
-         file using the command below:  
-         ```shell 
-         nano /etc/fstab
-         ```
-         The UUID of the new file system to copy should look similar to the image below:  
-         ![](img/fstab_config_file.png)  
-         Copy the text below and place the text at the end of the file system table configuration file:  
-         ```text
-         UUID="<UUID_NUMBER_OF_FILE_SYSTEM>" /mnt/sql-data ext4 defaults 0 1 
-         ```
-     12. Type the following command  to mount the additional filesystem that was added to the `/etc/fstab `file:    
-         ```shell
-         mount -a
-         ```
-         Display the filesystem type in a human-readable format using the following command:    
-         ```shell
-         df -Th
-         ```
-         Reboot the machine and use the same command above to verify the filesystem mounts on boot up.  
-14. Edit the MariaDB server configuration file `/etc/mysql/mariadb.conf.d/50-server.cnf` using the following command:  
+13. Edit the MariaDB server configuration file **/etc/mysql/mariadb.conf.d/50-server.cnf** using the following command:  
     ```shell 
     sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
     ```
-    Uncomment and set `datadir = /mnt/sql-data/data` in the top `[mariadbd]` section as in the image below:  
+    Uncomment and set **datadir = /mdb_pool/mdb_data** in the top **[mariadbd]** section as in the image below:  
     ![](img/mariadb_50_server_datadir_var.png)  
     Uncomment the various error log variables as in the image below:  
     ![](img/mariadb_50_server_log.png)  
-    Add the following system variables to the bottom of `[mariadbd]` section to enable the MariaDB server audit plugin:  
-    ![](img/mariadb_50_server_audit_log_plugings.png)  
-15. Stop the MariaDB service using the following command:
-    ```shell 
-    sudo systemctl stop mariadb.service
-    ```
-16. Create a data directory using the following command:
-    ```shell 
-    sudo mkdir /mnt/sql-data/data
-    ```
-17. Change the ownership and contents of the data directory recursively to the mysql user and mysql group:
+    Add the following system variables to the bottom of **[mariadbd]** section to enable the MariaDB server audit plugin:  
+    ![](img/mariadb_50_server_audit_log_plugings.png)
+14. Create a ZFS pool and file system using the secondary disk:
+     1. Temporarily gain superuser privileges using the command below:  
+        ```shell
+        sudo su
+        ```
+        **NOTE:** This command will prevent having to type **sudo** for every superuser command typed.  
+     2. Find the secondary disk that'll be used for the creation of the ZFS file system using following command:
+        ```shell
+        fdisk -l
+        ```
+        **NOTE:** The file structure path for the secondary hard disk should look like **/dev/sdb** and notice no partitions
+                  are created on the disk, if any partitions were created on the secondary disk, the partitions would appear
+                  right before the next disk (**/dev/sda**) is displayed, as in the image below:   
+        ![](img/disk_partitions_list1.png)  
+     3. Install the ZFS tools and packages using the following commands:  
+        ```shell
+        sudo apt install zfsutils-linux -y
+        ```
+     4. Create the MariaDB ZPOOL using the following command:  
+        ```shell
+        sudo zpool create mdb_pool /dev/sdb
+        ```
+        Issue the following command to verify the creation of the zpool:   
+        ```shell
+        sudo zpool status
+        ```
+     5. Create the MariaDB ZFS data file system using the following command:    
+         ```shell
+          sudo zfs create mdb_pool/mdb_data
+         ```
+         Issue the following command to verify the creation of the ZFS file system:   
+         ```shell
+         sudo zfs list
+         ```
+     6. Reboot the machine and verify the ZFS file system stays mounted using the following commands:  
+        ```shell
+        sudo reboot
+        ```
+        ```shell
+        sudo df -Th
+        ```
+        The following image shows the new ZPOOL and ZFS (file system) on secondary disk:   
+        ![](img/zfs_zpool.png)   
+        ```shell
+        sudo fdisk -l 
+        ```
+        The following image shows the new partitions on the secondary disk:  
+        ![](img/disk_partitions_list2.png)  
+15. Change the ownership and contents of the data directory recursively to the mysql user and mysql group:
     ```shell
-    sudo chown -R mysql:mysql /mnt/sql-data
+    sudo chown -R mysql:mysql /mdb_pool/mdb_data/
     ```
-18. Copy everything from `/var/lib/mysql/` directory to the data directory recursively while preserving the file attributes using the command below:
+16. Copy everything from **/var/lib/mysql/** directory to the data directory recursively while preserving the file attributes using the command below:
     ```shell
-    sudo cp -R -p /var/lib/mysql/* /mnt/sql-data/data
+    sudo cp -R -p /var/lib/mysql/* /mdb_pool/mdb_data/
     ```
-19. Start the MariaDB service using the following command:
+17. Start the MariaDB service using the following command:
     ```shell 
     sudo systemctl start mariadb.service
     ```
@@ -212,28 +170,28 @@ ___
     ```shell 
     sudo systemctl is-active mariadb.service
     ```
-20. Verify that `datadir` system variable holds the new path to the data directory using the command:
+18. Verify that **datadir** system variable holds the new path to the data directory using the command:
     ```shell
     mariadb -u root -p -e "SELECT @@datadir"
     ```
     Output should look like the image below:  
     ![](img/datadir_sys_var.png)  
-21. Stop the MariaDB service using the following command:
+19. Stop the MariaDB service using the following command:
     ```shell 
     sudo systemctl stop mariadb.service
     ```
-22. Join the MariaDB server to the Active Directory:
+20. Join the MariaDB server to the Active Directory:
     1. Edit the Samba configuration file using the following command:
        ```shell 
        sudo nano /etc/samba/smb.conf
        ```
-       Update the value of the variable `netbios name` to the server node name being created in the `[global]` section. This 
+       Update the value of the variable **netbios name** to the server node name being created in the **[global]** section. This 
        should be the only variable that needs to be updated across each server node configuration file. See the image
        below for clarification:  
        ![](img/samba_server_config_file.png)  
-    2. Enable and restart the `Samba` service to start up automatically at boot using the following commands:   
+    2. Enable and restart the **Samba** service to start up automatically at boot using the following commands:   
        ```shell
-       sudo systemctl enable smbd
+       sudo systemctl enable --now smbd
        ``` 
        ```shell
        sudo systemctl restart smbd
@@ -242,26 +200,28 @@ ___
        ```shell
        sudo net ads join -S AD-01.RESEARCH.PEMO -U <user_in_ad_domain>
        ```
-       `<user_in_ad_domain>` - is a user who has privileges in the AD domain to add a computer.  
-    4. Enable and restart the `winbind` service to start up automatically at boot using the following commands:
+       **NOTE:** **<user_in_ad_domain>** - is a user who has privileges in the AD domain to add a computer.  
+    4. Enable and restart the **winbind** service to start up automatically at boot using the following commands:
        ```shell
-       sudo systemctl enable winbind
+       sudo systemctl enable --now winbind
        ```
        ```shell
        sudo systemctl restart winbind
        ```
-       Verify that `winbind` service established a connection to the active directory domain by running the command below:
+       Verify that **winbind** service established a connection to the active directory domain by running the command below:
        ```shell
        sudo wbinfo -u
        ```
-       This command will return a list of users from the domain that is connected via `winbind`.  
+       **NOTE:** This command will return a list of users from the domain that is connected via **winbind**.  
 
     5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
-23. Install `SentinelOne` cybersecurity software to detect, protect, and remove malicious software. The following sub steps
-    will explain how to install `SentinelOne` by mounting a NAS (network attached storage) device then accessing the install files
-    on the NAS. There are other methods for installation along with uninstalling, and upgrading `SentinelOne`, if any
-    other method is needed then see the `SentinelOne` setup document that's under a PEMO Site Automation GitHub repository.  
-    1. Check that the latest `SentinelOne` package is on the research scada share if not then you can download the last package
+21. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
+    > The following sub steps will explain how to install **SentinelOne** by mounting a NAS (network attached storage) 
+      device, then accessing the installation files on the NAS. There are other methods for installation along with uninstalling, 
+      and upgrading **SentinelOne**, if any other method is needed then see the **SentinelOne** setup document that's 
+      under a PEMO Site Automation GitHub repository.  
+    
+    1. Check that the latest **SentinelOne** package is on the research scada share if not then you can download the last package
        then replace the existing package, see the image below on finding the latest package on the web management console:  
        ![](./img/sentinels_packages.png)  
     2. Make note and verify the site token for the site that the machine will join, the site token for a site can be found using
@@ -269,7 +229,7 @@ ___
        ![](./img/settings_sites.png)  
     3. Install the network file system packages if not already installed using the following command:   
        ```shell
-       sudo apt install nfs-common
+       sudo apt install nfs-common -y
        ```
     4. Create a NFS directory on the local machine to share using a similar command to the following:  
        ```shell
@@ -283,11 +243,13 @@ ___
        ```shell
        showmount -e cnas-01.research.pemo
        ```
+       The following image will show the NFS shares available, from issuing the above command:  
+       ![](./img/nfs_shares_available_on_server.png)   
        If the NFS share is not available then check the following on the NAS:  
        - Ensure the share folder is created.  
        - Check the location of the share folder.  
        - Check the NFS permission rules.  
-       - See step 5 under `Deploy Galera Arbitrator` section for more solutions.  
+       - See **step 5** under [Galera Cluster Setup](#galera-cluster-setup) section for more solutions.  
 
     7. Mount the external NFS share on machine using a similar command to the following:  
        ```shell
@@ -295,9 +257,9 @@ ___
        ```
     8. Change directories to the location where the files and shell script are located using a similar command to the following:  
        ```shell
-       sudo cd /mnt/scada/nas/program_install_files/sentinel_one
+       cd /mnt/scada/nas/program_install_files/sentinel_one
        ```
-       If denied access to the NFS share then change owner of the directory using a similar command to the following:  
+       **NOTE:** If denied access to the NFS share then change owner of the directory using a similar command to the following:  
        ```shell
        sudo chown <user or user:group> /mnt/scada/nas
        ```
@@ -305,36 +267,33 @@ ___
        ```shell
        sudo ./sentinelone_linux_agent_install.sh
        ```
-       Ensure that the latest packages from step 1 is in the directory and that the shell script contains the correct path 
-       to the latest package and site token (with respect to the site that the machine will join).
+       **NOTE:** Ensure that the latest packages from step 1, are in the directory and that the shell script 
+       contains the correct path to the latest package and site token (with respect to the site that the machine will join).
        Use the following command to open the shell script, if necessary:  
        ```shell
        sudo nano sentinelone_linux_agent_install.sh
        ```
     10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
-24. Repeat steps 1 - 21 above for every MariaDB server node created.  
-25. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
+22. Repeat steps 1 - 22 above, for every MariaDB server node created.  
+23. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
 
 ## Galera Cluster Setup
-Start the Galera Cluster by bootstrapping a server node, which makes the node the primary component from which the other nodes in the cluster can sync.
-The MariaDB service will be stopped on every node that is created until the cluster is initialized on one of the nodes. The initialization of the cluster can
-technically be started on any server node available but typically the start of the cluster will be initialized from the first node (`mdb-01`).
+Start the Galera Cluster by bootstrapping a server node (**mdb-01**), which makes the node the primary component 
+from which the other nodes in the cluster can sync. The MariaDB service should be stopped on every node that'll 
+join the cluster. The initialization of the cluster can technically be started on any server node available, 
+but typically the start of the cluster will be initialized from the first node (**mdb-01**).
 ___
-1. Stop the MariaDB service on each server node including the node that'll be bootstrapped if the service is not already stopped using the following command:  
-   ```shell
-   sudo systemctl stop mariadb
-   ```
-2. Bootstrap `mdb-01` to form the new cluster using the following command:   
+1. Bootstrap **mdb-01** to form the new cluster using the following command:   
    ```shell
    sudo galera_new_cluster
    ```
    This will also automatically start the MariaDB service on **mdb-01**.
-3. Start the MariaDB service on the other MariaDB server nodes using the following command:
+2. Start and enable the MariaDB service on the other MariaDB server nodes using the following command:
    ```shell
-   sudo systemctl start mariadb
+   sudo systemctl enable --now mariadb
    ```
-4. Verify the status and health of the MariaDB Galera Cluster using the following SQL queries:  
+3. Verify the status and health of the MariaDB Galera Cluster using the following SQL queries:  
    Check the cluster size:  
    ```shell
    mariadb -u root -p -e "SHOW STATUS LIKE 'wsrep_cluster_size'"
@@ -347,7 +306,8 @@ ___
    ```
    Output should look similar to the image below:  
    ![](img/wsrep_incoming_addresses.png)  
-5. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.   
+   **NOTE:** The commands above can be executed from any server node that has successfully joined the cluster.  
+4. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.   
 
 ## Galera Arbitrator Setup
 This only needs to be configured on one of the server nodes, **mdb-03** will be selected since it's the odd number node, and the donor node. 
@@ -469,7 +429,7 @@ ___
       ```shell
       sudo mount -t nfs cnas-02.research.pemo:/volume1/mdb-backup /mnt/sql-data/backup/nas
       ```
-      Verify the mount using the `df` command to display the filesystem type in a human-readable format.
+      Verify the mount using the **df** command to display the filesystem type in a human-readable format.
       ```shell
       sudo df -Th
       ```
@@ -478,7 +438,8 @@ ___
       nano /etc/fstab
       ```
       Add the following text to the end of the file:  
-      `cnas-01.research.pemo:/volume1/mdb-backup /mnt/sql-data/backup/nas nfs defaults 0 0 `  
+      > cnas-01.research.pemo:/volume1/mdb-backup /mnt/sql-data/backup/nas nfs defaults 0 0  
+
    6. Reboot the machine and verify the mount stays attached using the `df` command:
       ```shell
       sudo df -Th
