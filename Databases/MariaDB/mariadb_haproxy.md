@@ -85,15 +85,16 @@ ___
    > mdbh-01 - 10.20.20.12/24 and gateway 10.20.20.1  
    > mdbh-02 - 10.20.20.13/24 and gateway 10.20.20.1
    
-10. Restart the machine using the following command:
+10. Update and upgrade the operating system using the following commands:   
+    ```shell
+    sudo apt update && sudo apt upgrade -y
+    ```
+    **NOTE:** If prompted to select which daemon services should be restarted, then accept the default selections, 
+    press the **tab** key to navigate between the selections. 
+11. Restart the machine using the following command:  
      ```shell
      sudo reboot
      ```
-11. Check for OS updates by issuing the following commands in the order below:  
-    ```shell
-    sudo apt update -y
-    sudo apt upgrade -y
-    ```
 12. Setup the firewall rules to allow incoming traffic from the following types of traffic:  
     **MariaDB database:**
     ```shell
