@@ -99,7 +99,7 @@ ___
     ```shell 
     sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
     ```
-    Uncomment and set **datadir = /mdb_pool/mdb_data** in the top **[mariadbd]** section as in the image below:  
+    Uncomment and set **datadir = /mnt/mdb_pool/mdb_data** in the top **[mariadbd]** section, as in the image below:  
     ![](img/mariadb_50_server_datadir_var.png)  
     Uncomment the various error log variables as in the image below:  
     ![](img/mariadb_50_server_log.png)  
