@@ -125,7 +125,7 @@ ___
         ```
      4. Create the MariaDB ZPOOL using the following command:  
         ```shell
-        sudo zpool create mdb_pool /dev/sdb
+        sudo zpool create /mnt/mdb_pool /dev/sdb
         ```
         Issue the following command to verify the creation of the zpool:   
         ```shell
@@ -133,7 +133,7 @@ ___
         ```
      5. Create the MariaDB ZFS data file system using the following command:    
          ```shell
-          sudo zfs create mdb_pool/mdb_data
+          sudo zfs create /mnt/mdb_pool/mdb_data
          ```
          Issue the following command to verify the creation of the ZFS file system:   
          ```shell
@@ -155,11 +155,11 @@ ___
         ![](img/disk_partitions_list2.png)  
 15. Change the ownership and contents of the data directory recursively to the mysql user and mysql group:
     ```shell
-    sudo chown -R mysql:mysql /mdb_pool/mdb_data/
+    sudo chown -R mysql:mysql /mnt/mdb_pool/mdb_data/
     ```
 16. Copy everything from **/var/lib/mysql/** directory to the data directory recursively while preserving the file attributes using the command below:
     ```shell
-    sudo cp -R -p /var/lib/mysql/* /mdb_pool/mdb_data/
+    sudo cp -R -p /var/lib/mysql/* /mnt/mdb_pool/mdb_data/
     ```
 17. Start the MariaDB service using the following command:
     ```shell 
@@ -348,7 +348,7 @@ ___
     # usage: garbd --cfg /etc/garbd.cnf
     # garbd.cnf must specify the sst as backup_rsync
     
-    backup_dir = '/mnt/sql-data/backup'
+    backup_dir = '/mnt/mdb_pool/mdb_data/mdb_backup'
     backup_sub_dir = 'rsync_files'
    
     today = `date +"%Y%m%d"`
@@ -375,28 +375,28 @@ ___
     ```
 4. Create the **backup** directory using the command below:
    ```shell
-    sudo mkdir /mnt/sql-data/backup
+    sudo mkdir /mnt/mdb_pool/mdb_data/mdb_backup
    ```
    Allow full permissions (read, write, execute) for the owner, group and others.
    ```shell
-    sudo chmod 777 /mnt/sql-data/backup
+    sudo chmod 777 /mnt/mdb_pool/mdb_data/mdb_backup
    ```
    Change the owner of the directory to a user named **mysql** in the **mysql** group.
    ```shell
-    sudo chown mysql:mysql /mnt/sql-data/backup
+    sudo chown mysql:mysql /mnt/mdb_pool/mdb_data/mdb_backup
    ```
 5. Create a network file system (NFS) on the NAS (cnas-01.research.pemo) and give mdb-03 node access: 
    1. Create a NFS directory on mdb-03 to share using the following commands:
       ```shell
-      sudo mkdir /mnt/sql-data/backup/nas
+      sudo mkdir /mnt/mdb_pool/mdb_data/mdb_backup/nas
       ```
       Allow full permissions (read, write, execute) for the owner, group and others.
       ```shell
-      sudo chmod 777 /mnt/sql-data/backup/nas
+      sudo chmod 777 /mnt/mdb_pool/mdb_data/mdb_backup/nas
       ```
       Change the owner of the directory to a user named **mysql** in the **mysql** group.
       ```shell
-      sudo chown mysql:mysql /mnt/sql-data/backup/nas
+      sudo chown mysql:mysql /mnt/mdb_pool/mdb_data/mdb_backup/nas
       ```
    2. Create the backup directory on the NAS using the web interface (recommended) or terminal:
       1. Web Interface:
@@ -424,7 +424,7 @@ ___
       ```
    4. Mount the cnas-01 (external NFS share) on mdb-03 (local system) using the following command:
       ```shell
-      sudo mount -t nfs cnas-02.research.pemo:/volume1/mdb-backup /mnt/sql-data/backup/nas
+      sudo mount -t nfs cnas-02.research.pemo:/volume1/mdb-backup /mnt/mdb_pool/mdb_data/mdb_backup/nas
       ```
       Verify the mount using the **df** command to display the filesystem type in a human-readable format.
       ```shell
@@ -435,9 +435,9 @@ ___
       nano /etc/fstab
       ```
       Add the following text to the end of the file:  
-      > cnas-01.research.pemo:/volume1/mdb-backup /mnt/sql-data/backup/nas nfs defaults 0 0  
+      > cnas-01.research.pemo:/volume1/mdb-backup /mnt/mdb_pool/mdb_data/mdb_backup/nas nfs defaults 0 0  
 
-   6. Reboot the machine and verify the mount stays attached using the `df` command:
+   6. Reboot the machine and verify the mount stays attached using the **df** command:
       ```shell
       sudo df -Th
       ```
