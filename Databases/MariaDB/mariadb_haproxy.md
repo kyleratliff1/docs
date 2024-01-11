@@ -97,7 +97,7 @@ ___
      ```
 12. Edit the **Network Device** from the **Hardware** settings of the VM, and assign **VLAN Tag** 20, as in the image below:  
     ![](img/vm_nic_vlan_tag.png)    
-12. Setup the firewall rules to allow incoming traffic from the following types of traffic:  
+13. Setup the firewall rules to allow incoming traffic from the following types of traffic:  
     **MariaDB database:**
     ```shell
     sudo ufw allow 3306/tcp
@@ -110,7 +110,7 @@ ___
     ```shell
     sudo ufw allow from 10.20.20.12
     ```
-13. Update the **keepalived** file for load balancing and high-availability using the following command:  
+14. Update the **keepalived** file for load balancing and high-availability using the following command:  
     ```shell
     sudo nano /etc/keepalived/keepalived.conf
     ```
@@ -125,7 +125,7 @@ ___
    > **priority** - The MASTER (101) will have a higher priority than the BACKUP (100).  
    > **virtual_ipaddress** - Check the available IP network reserved for virtual routers.  
    
-14. Update the **haproxy** file for load balancing and high-availability using the following command:   
+15. Update the **haproxy** file for load balancing and high-availability using the following command:   
     ```shell
     sudo nano /etc/haproxy/haproxy.cfg
     ```
@@ -185,7 +185,7 @@ ___
      The "weight 1" option informs HAProxy of the server's importance relative to other servers in the cluster. A higher weight
      means it will handle more connections. In this case all servers are treated equally. 
    
-15. In each MariaDB server specify the two MariaDB HAProxy server nodes from which the HAProxy user 
+16. In each MariaDB server specify the two MariaDB HAProxy server nodes from which the HAProxy user 
     can connect to the MariaDB databases, using the following SQL commands from the MariaDB shell.   
     Access the MariaDB shell as the root user and prompt for the root password:  
     ```shell
@@ -204,7 +204,7 @@ ___
     propagated to the other MariaDB servers, access the MariaDB shell from the other servers and issue the SQL command 
     above to verify. 
 
-16. Start and enable the **keepalived** and **haproxy** services using the following commands:  
+17. Start and enable the **keepalived** and **haproxy** services using the following commands:  
     ```shell
     sudo systemctl enable --now keepalived
     ```
@@ -218,27 +218,27 @@ ___
     ```shell
     sudo systemctl is-active haproxy
     ```
-17. You can verify the state of each Keepalived service by examining the Keepalived logs on each MariaDB HAProxy node:  
+18. You can verify the state of each Keepalived service by examining the Keepalived logs on each MariaDB HAProxy node:  
     ```shell
     sudo grep "Keepalived" /var/log/syslog
     ```
     **NOTE:** This command will go through the 'syslog' file, line by line, and print out any lines that contain 
     the word "Keepalived".  
-18. Open a web browser and type the url [http://10.20.20.11:8404/stats](http://10.20.20.11:8404/stats)
+19. Open a web browser and type the url [http://10.20.20.11:8404/stats](http://10.20.20.11:8404/stats)
     to access the HAProxy stats web page.  
     If all the MariaDB and HAproxy servers are operating correctly, then frontend and listen tables will be displayed, where 
     each row corresponds to a server and a color green indicates the server is active and up. A legend is displayed that'll See the image below:   
     ![](img/mariadb_haproxy_stats_page.png)  
-19. Access AD-01 and bind the virtual IP to the hostname **mdb.research.pemo** using the following steps:  
+20. Access AD-01 and bind the virtual IP to the hostname **mdb.research.pemo** using the following steps:  
     1. Open the **DNS** tools from the **Microsoft Server Manager**, see the image below:   
        ![](img/dns_tools_server_manager.png)  
     2. Create a new host in the **research.pemo** domain under the **Foward Lookup Zones**, see the image below:  
        ![](img/research_domain_in_ad.png)
     3. Bind a new hostname to the virtual IP, see the image below:  
        ![](img/new_host_in_research_domain.png)  
-20. Open a web browser and type the url [http://mdb.research.pemo:8404/stats](http://mdb.research.pemo:8404/stats)
+21. Open a web browser and type the url [http://mdb.research.pemo:8404/stats](http://mdb.research.pemo:8404/stats)
     to verify that the binding of the new hostname and virtual IP.  
-21. Join the MariaDB HAProxy server to the Active Directory:  
+22. Join the MariaDB HAProxy server to the Active Directory:  
     1. Edit the Samba configuration file using the following command:
        ```shell 
        sudo nano /etc/samba/smb.conf
@@ -267,7 +267,7 @@ ___
        **NOTE:** This command will return a list of users from the domain that is connected via **winbind**.  
 
     5. Verify AD login acceptance into the machine by logging out and in with your AD account. 
-22. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
+23. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
     > The following sub steps will explain how to install **SentinelOne** by mounting a NAS (network attached storage) 
       device, then accessing the installation files on the NAS. There are other methods for installation along with uninstalling, 
       and upgrading **SentinelOne**, if any other method is needed then see the **SentinelOne** setup document that's 
@@ -326,5 +326,5 @@ ___
        ```
     10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)     
-23. Repeat steps 1 - 21 above for every MariaDB HAProxy server node created.  
-24. Jump to step 5 in the [MariaDB HAProxy Main Content Steps](#mariadb-haproxy-main-content-steps) section.  
+24. Repeat steps 1–23 above for every MariaDB HAProxy server node created.  
+25. Jump to step 5 in the [MariaDB HAProxy Main Content Steps](#mariadb-haproxy-main-content-steps) section.  
