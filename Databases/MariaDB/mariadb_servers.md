@@ -311,7 +311,7 @@ ___
    ```
 2. Create the Galera Arbitrator configuration file using the following command:
    ```shell
-    sudo /etc/garbd.cnf
+    sudo nano /etc/garbd.cnf
    ```
    Paste the text into the configuration file:
     ```ini
