@@ -102,11 +102,13 @@ ___
     ```shell
     sudo ufw allow 3306/tcp
     ```
-    **Allow traffic from mdbh-02 (10.20.20.13) using the mdbh-01 bash shell:**  
+    If HAProxy is being setup on **mdbh-01**, then allow traffic from **mdbh-02
+    (10.20.20.13)** using the following command:   
     ```shell
     sudo ufw allow from 10.20.20.13
     ```
-    **Allow traffic from mdbh-01 (10.20.20.12) using the mdbh-02 bash shell:**  
+    If HAProxy is being setup on **mdbh-02**, then allow traffic from **mdbh-01
+    (10.20.20.12)** using the following command:   
     ```shell
     sudo ufw allow from 10.20.20.12
     ```
@@ -162,9 +164,9 @@ ___
             mode tcp
             option tcpka
             option mysql-check user haproxy
-            server mdb-01 10.20.1.14:3306 send-proxy check weight 1
-            server mdb-02 10.20.5.14:3306 send-proxy check weight 1
-            server mdb-03 10.20.3.14:3306 send-proxy check weight 1
+            server mdb-01 10.20.1.14:3306 check weight 1
+            server mdb-02 10.20.5.14:3306 check weight 1
+            server mdb-03 10.20.3.14:3306 check weight 1
     ```
     The updated **haproxy.cfg** file should look similar to the image below:  
     ![](img/haproxy_config_mariadb.png)  
@@ -185,8 +187,8 @@ ___
      The "weight 1" option informs HAProxy of the server's importance relative to other servers in the cluster. A higher weight
      means it will handle more connections. In this case all servers are treated equally. 
    
-16. In each MariaDB server specify the two MariaDB HAProxy server nodes from which the HAProxy user 
-    can connect to the MariaDB databases, using the following SQL commands from the MariaDB shell.   
+16. Go to each **MariaDB Server** and specify the **MariaDB HAProxy Servers** from which the HAProxy User 
+    can connect to the **MariaDB Server Databases**, using the following SQL commands from the **MariaDB Server Shell**.   
     Access the MariaDB shell as the root user and prompt for the root password:  
     ```shell
     sudo mariadb -u root -p
@@ -198,13 +200,13 @@ ___
     ```
     Verify the user and hosts were created by executing the following SQL command:  
     ```sql
-    SELECT User, Host FROM mysql.user;
+    SELECT User, Host FROM mysql.user;  
     ```
     **NOTE:** Since a MariaDB Galera cluster exists, the initial creation of the haproxy user should have been 
     propagated to the other MariaDB servers, access the MariaDB shell from the other servers and issue the SQL command 
     above to verify. 
 
-17. Start and enable the **keepalived** and **haproxy** services using the following commands:  
+17. Go back to the **HAProxy Server** and start and enable the **keepalived** and **haproxy** services using the following commands:  
     ```shell
     sudo systemctl enable --now keepalived
     ```
