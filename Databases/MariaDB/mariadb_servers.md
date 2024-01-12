@@ -388,7 +388,7 @@ ___
 5. Create a network file system (NFS) on the NAS (cnas-01.research.pemo) and give mdb-03 node access: 
    1. Create a NFS directory on mdb-03 to share using the following commands:
       ```shell
-      sudo mkdir /mnt/mdb_data_backups/nas
+      sudo mkdir -p /mnt/mdb_data_backups/nas
       ```
       Allow full permissions (read, write, execute) for the owner, group and others.
       ```shell
