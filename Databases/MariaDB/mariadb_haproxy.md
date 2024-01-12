@@ -135,7 +135,7 @@ ___
     ```shell
     # Enable two instances of the stats webpage for display, monitoring, and health status.
     frontend stats
-            mode tcp
+            mode http
             # The shared virtual IP and port number that'll be used to access the stats web page. 
             bind 10.20.20.11:8404
             # The MASTER/BACKUP IP address and port number used to create another instance of the stats web server 
