@@ -432,12 +432,13 @@ ___
       ```
    5. Edit the file system table configuration file using the command below:   
       ```shell 
-      nano /etc/fstab
+      sudo nano /etc/fstab
       ```
       Add the following text to the end of the file:  
-      > cnas-01.research.pemo:/volume1/mdb-backup /mnt/mdb_data_backups/nas nfs defaults 0 0  
-
-   6. Reboot the machine and verify the mount stays attached using the **df** command:
+      ```shell
+      cnas-01.research.pemo:/volume1/mdb-backup /mnt/mdb_data_backups/nas nfs defaults 0 0  
+      ```
+   7. Reboot the machine and verify the mount stays attached using the **df** command:
       ```shell
       sudo df -Th
       ```
