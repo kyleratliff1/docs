@@ -379,11 +379,11 @@ ___
     ```
    Allow full permissions (read, write, execute) for the owner, group and others.
    ```shell
-    sudo chmod 777 mdb_pool/mdb_backup
+    sudo chmod 777 /mdb_pool/mdb_backup
    ```
    Change the owner of the directory to a user named **mysql** in the **mysql** group.
    ```shell
-    sudo chown mysql:mysql mdb_pool/mdb_backup
+    sudo chown mysql:mysql /mdb_pool/mdb_backup
    ```
 5. Create a network file system (NFS) on the NAS (cnas-01.research.pemo) and give mdb-03 node access: 
    1. Create a NFS directory on mdb-03 to share using the following commands:
