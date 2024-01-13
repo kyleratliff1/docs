@@ -340,21 +340,22 @@ ___
    Paste the text into the configuration file:
     ```shell
     #!/bin/bash
+    # shebang (#!) at the top of the script to know which interpreter to use.
     
     # usage: garbd --cfg /etc/garbd.cnf
     # garbd.cnf must specify the sst as backup_rsync
     
-    backup_dir = '/mdb_pool/mdb_backup'
-    backup_sub_dir = 'rsync_files'
+    backup_dir='/mdb_pool/mdb_backup'
+    backup_sub_dir='rsync_files'
    
-    today = `date +"%Y%m%d"`
-    backup_today = "galera-rsync-backup-$today"
+    today=`date +"%Y%m%d"`
+    backup_today="galera-rsync-backup-$today"
     
-    last_week = $(date -d "$date -7 days" +"%Y%m%d")
-    backup_last_week = "galera-rsync-backup-$last_week.tgz"
+    last_week=$(date -d "$date -7 days" +"%Y%m%d")
+    backup_last_week="galera-rsync-backup-$last_week.tgz"
    
     # Load common script
-    ./usr/bin/wsrep_sst_common
+    /usr/bin/wsrep_sst_common
    
     # Copy MariaDB data to temporary directory
     rsync -a /mdb_pool/mdb_data $backup_dir/$backup_sub_dir
@@ -369,7 +370,11 @@ ___
     # Delete last weeks archive
     rm -f $backup_dir/$backup_last_week  
     ```
-4. Create the MariaDB ZFS backup file system using the following command:    
+4. Make the file an executable using the following command:  
+    ```shell
+    sudo chmod +x /usr/bin/wsrep_sst_backup_rsync
+    ```
+5. Create the MariaDB ZFS backup file system using the following command:    
     ```shell
      sudo zfs create mdb_pool/mdb_backup
     ```
@@ -385,7 +390,7 @@ ___
    ```shell
     sudo chown mysql:mysql mdb_pool/mdb_backup
    ```
-5. Create a network file system (NFS) on the NAS (cnas-01.research.pemo) and give mdb-03 node access: 
+6. Create a network file system (NFS) on the NAS (cnas-01.research.pemo) and give mdb-03 node access: 
    1. Create a NFS directory on mdb-03 to share using the following commands:
       ```shell
       sudo mkdir /mnt/mdb_data_backups/nas
@@ -441,14 +446,29 @@ ___
       ```shell
       sudo df -Th
       ```
-6. Test the **garbd** (Galera Arbitrator Daemon) configuration file using the following command:  
+7. Test the **garbd** (Galera Arbitrator Daemon) configuration file using the following command:  
    ```shell 
    sudo garbd --cfg /etc/garbd.cnf
    ```
-7. Edit the crontab using the following command:  
-    ```shell
+   Check that a MariaDB backup exists in the CNAS-01 share and local MariaDB ZFS by issuing the following commands:  
+   ```shell 
+   sudo ls -sh /mnt/mdb_data_backups/nas/
+   ```
+   ```shell 
+   sudo ls -sh /mdb_pool/mdb_backup/
+   ```
+   Remove the backups from the CNAS-01 share and local MariaDB ZFS after testing and verification,
+   by issuing the following commands:  
+   ```shell 
+   sudo rm -rf /mnt/mdb_data_backups/nas/*
+   ```
+   ```shell
+   sudo rm -rf /mdb_pool/mdb_backup/*
+   ```
+8. Edit the crontab using the following command:  
+   ```shell
    sudo nano /etc/crontab
-    ```   
+   ```   
    Place the following text to schedule **garbd** configuration file to run automatically at a specified time at the end of the file:  
    ```shell
    7 7 * * * root garbd --cfg /etc/garbd.cnf
@@ -471,7 +491,7 @@ ___
    ```shell
    sudo systemctl restart cron
    ```
-8. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
+9. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
 
 ## MariaDB Backup Node Setup
 ___
