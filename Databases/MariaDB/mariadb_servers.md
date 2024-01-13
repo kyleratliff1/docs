@@ -326,9 +326,9 @@ ___
     # donor - the node that'll use its local database to bring another nodes databases back in sync with the cluster.
     # joiner - the node whose local database is out of sync with the other nodes in the cluster. 
 
-    group = "mdbc-01"
-    address = "gcomm://10.20.1.14:4567,10.20.5.14:4567,10.20.3.14:4567"
-    options = "gmcast.listen_addr=tcp://0.0.0.0:4444"
+    group="mdbc-01"
+    address="gcomm://10.20.1.14:4567,10.20.5.14:4567,10.20.3.14:4567"
+    options="gmcast.listen_addr=tcp://0.0.0.0:4444"
     donor="mdb-03"
     sst="backup_rsync"
     log="/var/log/garbd.log"
