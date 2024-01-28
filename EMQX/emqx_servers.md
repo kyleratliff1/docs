@@ -118,7 +118,21 @@ ___
     ```shell
     sudo reboot
     ```
-11. Install EMQX on Ubuntu using the following commands: 
+11. Allow incoming connections on the following ports, using the following commands: 
+    ```shell
+    sudo ufw allow 1883/tcp
+    sudo ufw allow 4370/tcp
+    sudo ufw allow 5370/tcp
+    sudo ufw allow 8080/tcp
+    sudo ufw allow 8084/tcp
+    sudo ufw allow 8404/tcp
+    sudo ufw allow 18083/tcp
+    ```
+    Verify the firewall rules were accepted using the following command:  
+    ```shell
+    sudo ufw status numbered
+    ```
+12. Install EMQX on Ubuntu using the following commands: 
     Download the EMQX repository:  
     ```shell
     curl -s https://assets.emqx.com/scripts/install-emqx-deb.sh | sudo bash
@@ -131,7 +145,7 @@ ___
     ```shell
     sudo systemctl start emqx
     ```
-12. Edit the main EMQX broker configuration file using the following command:  
+13. Edit the main EMQX broker configuration file using the following command:  
     ```shell 
     sudo nano /etc/emqx/emqx.conf
     ```
@@ -168,43 +182,33 @@ ___
     }
     ```
     emqx ctl cluster status
-13. Setup the firewall rules to allow incoming traffic from the following types of traffic using the following commands: 
-    ```shell
-    sudo ufw allow 1883/tcp
-    sudo ufw allow 4370/tcp
-    sudo ufw allow 5370/tcp
-    sudo ufw allow 8080/tcp
-    sudo ufw allow 8084/tcp
-    sudo ufw allow 8404/tcp
-    sudo ufw allow 18083/tcp
+14. Goto any MariaDB server (mdb-01, mdb-02, or mdb-03) and create a **mqtt** database in the MariaDB shell,
+    using the following commands:  
+    ```shell 
+    sudo mariadb -u root -p
     ```
-    Verify the firewall rules were accepted using the following command:  
-    ```shell
-    sudo ufw status numbered
+    Create the database named **mqtt** in the MariaDB shell:  
+    ```mariadb 
+    create database mqtt;
+    ```
+    Access the **mqtt** database:  
+    ```mariadb 
+    use mqtt;
+    ```
+    Create the **mqtt_user** table in the **mqtt** database:  
+    ```mariadb
+    CREATE TABLE `mqtt_user` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `username` varchar(100) DEFAULT NULL,
+    `password_hash` varchar(100) DEFAULT NULL,
+    `salt` varchar(35) DEFAULT NULL,
+    `is_superuser` tinyint(1) DEFAULT 0,
+    `created` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `mqtt_username` (`username`)
+    )    ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ```
 
-14. Copy everything from **/var/lib/mysql/** directory to the data directory recursively while preserving the file attributes using the command below:
-    ```shell
-    sudo cp -R -p /var/lib/mysql/* /mdb_pool/mdb_data/
-    ```
-15. Initialize the galera custer, which also starts the MariaDB service, using the following command:  
-    ```shell 
-    sudo galera_new_cluster
-    ```
-    The status of the MariaDB service can be checked using the following command:  
-    ```shell 
-    sudo systemctl is-active mariadb.service
-    ```
-16. Verify that **datadir** system variable holds the new path to the data directory using the command:
-    ```shell
-    mariadb -u root -p -e "SELECT @@datadir"
-    ```
-    Output should look like the image below:  
-    ![](img/datadir_sys_var.png)  
-17. Stop the MariaDB service using the following command:
-    ```shell 
-    sudo systemctl stop mariadb.service
-    ```
 18. Join the EMQX server to the Active Directory:
     1. Edit the Samba configuration file using the following command:
        ```shell 
