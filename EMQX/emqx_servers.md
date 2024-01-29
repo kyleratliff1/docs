@@ -202,15 +202,32 @@ ___
        ```
     2. Create the **mqtt** database:  
        ```mariadb 
-       CREATE DATABASE emqx;
+       CREATE DATABASE mqtt;
        ```
-    3. Access the **emqx** database:  
+    3. Create a user to access the **mqtt** database, using the following sql commands:   
+       1. Use the new, more secure password hashing method when creating or changing passwords.
+          ```mariadb 
+          SET old_passwords=0;
+          ```
+       2. Create a new user with a password.
+          ```mariadb 
+          CREATE USER 'emqx'@'10.20.%' identified by 'T1ger$$$$$';
+          ```
+       3. Grant the newly created user access to the tables in the database. 
+          ```mariadb 
+          GRANT ALL PRIVILEGES ON mqtt.* TO 'emqx'@'10.20.%';
+          ```
+       4. Apply the changes.
+          ```mariadb 
+          FLUSH PRIVILEGES;
+          ```
+    4. Access the **emqx** database:  
        ```mariadb 
        USE emqx;
        ```
-    4. Create the **mqtt_user** table in the **mqtt** database:  
+    5. Create the **mqtt_user** table in the **mqtt** database:  
        ```mariadb
-       CREATE TABLE `emqx_user` (
+       CREATE TABLE `mqtt_user` (
        `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
        `username` varchar(100) DEFAULT NULL,
        `password_hash` varchar(100) DEFAULT NULL,
@@ -218,12 +235,12 @@ ___
        `is_superuser` tinyint(1) DEFAULT 0,
        `created` datetime DEFAULT NULL,
        PRIMARY KEY (`id`),
-       UNIQUE KEY `emqx_username` (`username`)
+       UNIQUE KEY `mqtt_username` (`username`)
        )    ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
        ```
-    5. Create a user to access the database: 
+    6. Create a user to access the database: 
        ```mariadb
-       INSERT INTO emqx_user(username, password_hash, salt, is_superuser) 
+       INSERT INTO mqtt_user(username, password_hash, salt, is_superuser) 
        VALUES ('mqtt', SHA2("V#2Rs%2E7%vem8", 256), NULL, 0);
        ```
 18. Join the EMQX server to the Active Directory:
