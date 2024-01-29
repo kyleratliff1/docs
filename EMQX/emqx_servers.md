@@ -162,9 +162,9 @@ ___
       name = emqxcl
       # emqx ctl cluster
       discovery_strategy = static
-      static { seeds = ["emqx@10.20.1.18", "emqx@10.20.5.18", "emqx@10.20.5.18"] }
+      static {seeds = ["emqx@10.20.1.18", "emqx@10.20.5.18", "emqx@10.20.5.18"]}
+      # Allow the network protocol TCP IPv4 for the nodes, meaning teh nodes will connect via TCP
       proto_dist = inet_tcp
-      driver = tcp
     }
     
     authentication {
@@ -221,9 +221,13 @@ ___
           ```mariadb 
           FLUSH PRIVILEGES;
           ```
-    4. Access the **emqx** database:  
+       5. Check that the user was created. 
+          ```mariadb
+          SELECT user, host FROM mysql.user;
+          ```
+    4. Access the **mqtt** database:  
        ```mariadb 
-       USE emqx;
+       USE mqtt;
        ```
     5. Create the **mqtt_user** table in the **mqtt** database:  
        ```mariadb
@@ -238,10 +242,14 @@ ___
        UNIQUE KEY `mqtt_username` (`username`)
        )    ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
        ```
-    6. Create a user to access the database: 
+    6. Create a user in the **mqtt_user** table. 
        ```mariadb
        INSERT INTO mqtt_user(username, password_hash, salt, is_superuser) 
        VALUES ('mqtt', SHA2("V#2Rs%2E7%vem8", 256), NULL, 0);
+       ```
+    7. Check that the user was created. 
+       ```mariadb
+       SELECT * FROM mqtt.mqtt_user;
        ```
 18. Join the EMQX server to the Active Directory:
     1. Edit the Samba configuration file using the following command:
