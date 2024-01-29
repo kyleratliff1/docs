@@ -159,20 +159,32 @@ ___
     }
 
     cluster {
-    name = emqxcl
-    # emqx ctl cluster
-    discovery_strategy = static
-    static {
-      seeds = ["emqx@10.20.1.18", "emqx@10.20.5.18", "emqx@10.20.5.18"]
+      name = emqxcl
+      # emqx ctl cluster
+      discovery_strategy = static
+      static { seeds = ["emqx@10.20.1.18", "emqx@10.20.5.18", "emqx@10.20.5.18"] }
+      proto_dist = inet_tcp
+      driver = tcp
     }
-    proto_dist = inet_tcp
-    driver = tcp
+    
+    authentication {
+      enable = true
+      backend = "mysql"
+      mechanism = "password_based"
+    
+      server = "mdb.research.pemo:3306"
+      username = "emqx"
+      database = "mqtt_user"
+      password = "T1ger$$$$$"
+      pool_size = 8
+
+      password_hash_algorithm {name = "sha256", salt_position = "suffix"}
+      query = "SELECT password_hash, salt FROM mqtt_user where username = ${username} LIMIT 1"
+      query_timeout = "5s"
     }
 
     dashboard {
-        listeners.http {
-            bind = 18083
-        }
+        listeners.http {bind = 18083}
     }
     listeners.tcp.default {
       bind = "0.0.0.0:1883"
@@ -182,33 +194,38 @@ ___
     }
     ```
     emqx ctl cluster status
-14. Goto any MariaDB server (mdb-01, mdb-02, or mdb-03) and create a **mqtt** database in the MariaDB shell,
-    using the following commands:  
-    ```shell 
-    sudo mariadb -u root -p
-    ```
-    Create the database named **mqtt** in the MariaDB shell:  
-    ```mariadb 
-    create database mqtt;
-    ```
-    Access the **mqtt** database:  
-    ```mariadb 
-    use mqtt;
-    ```
-    Create the **mqtt_user** table in the **mqtt** database:  
-    ```mariadb
-    CREATE TABLE `mqtt_user` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `username` varchar(100) DEFAULT NULL,
-    `password_hash` varchar(100) DEFAULT NULL,
-    `salt` varchar(35) DEFAULT NULL,
-    `is_superuser` tinyint(1) DEFAULT 0,
-    `created` datetime DEFAULT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `mqtt_username` (`username`)
-    )    ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ```
-
+14. Goto any MariaDB server (mdb-01, mdb-02, or mdb-03) and create emqx database, user in the database, 
+    and finally create a user to access the database in the MariaDB shell, using the following commands:  
+    1. Access the MariaDB shell:  
+       ```shell 
+       sudo mariadb -u root -p
+       ```
+    2. Create the **mqtt** database:  
+       ```mariadb 
+       CREATE DATABASE emqx;
+       ```
+    3. Access the **emqx** database:  
+       ```mariadb 
+       USE emqx;
+       ```
+    4. Create the **mqtt_user** table in the **mqtt** database:  
+       ```mariadb
+       CREATE TABLE `emqx_user` (
+       `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+       `username` varchar(100) DEFAULT NULL,
+       `password_hash` varchar(100) DEFAULT NULL,
+       `salt` varchar(35) DEFAULT NULL,
+       `is_superuser` tinyint(1) DEFAULT 0,
+       `created` datetime DEFAULT NULL,
+       PRIMARY KEY (`id`),
+       UNIQUE KEY `emqx_username` (`username`)
+       )    ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+       ```
+    5. Create a user to access the database: 
+       ```mariadb
+       INSERT INTO emqx_user(username, password_hash, salt, is_superuser) 
+       VALUES ('mqtt', SHA2("V#2Rs%2E7%vem8", 256), NULL, 0);
+       ```
 18. Join the EMQX server to the Active Directory:
     1. Edit the Samba configuration file using the following command:
        ```shell 
