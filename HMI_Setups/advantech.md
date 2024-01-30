@@ -1,24 +1,22 @@
 ## Brand New Machine Setup From Vendor
 - Verify windows is activated and has the latest updates.
 - 
-## Machine Setup after system reset
-- Setup For Personal Use
-  - setup offline account, should be an option for this type of account in the lower left corner after selecting **For Personal Use**.
-  - click limited experience in the lower left corner.
-  - Local User will be `Automation` with password `1richcat`.
-  - setup three security question to all have an answer of `alcon` all lowercase.
+## Machine Setup after system reset Windows
+- Join to Domain
+  - Local User will be **Automation** with password **1richcat**.
+  - setup three security question to all have an answer of **alcon** all lowercase.
 - Verify windows is activated and has the latest updates.
 - Change Computer Name
-  - Client: IGH-\<BUILDING-AREA>-\<INDEX>.
-    - Ex: IGH-CONNERH-01.
-  - Server: IGS-\<BUILDING-NAME>-\<INDEX>. 
-    - Ex: IGS-CONNER-01.
+  - Client: IGC-\<BUILDING-AREA and SUB AREA (if exist)\>-\<INDEX\>
+    > Ex: **IGC-CONNERH-01.**
+  - Server: IGS-\<BUILDING-AREA and SUB AREA (if exist)\>-\<INDEX\>
+    > Ex: **IGS-CONNERH-01.**
 - BIOS settings, see **BIOS Settings** section below.
  - Map the cnas drive
-    - `\\cnas-01\scada`
+    > **\\cnas-01\scada**
  - Install software from the cnas-drive
-    - Atera: `\Admin\Program_Install_Files\Atera\setup_alcon_pemo`
-    - SentinelOne: `\Admin\Program_Install_Files\SentinelOne\install_sentinel_64bit_pemo`
+    > Atera: **\Admin\Program_Install_Files\Atera\setup_alcon_pemo**
+    - SentinelOne: \Admin\Program_Install_Files\SentinelOne\install_sentinel_64bit_pemo
  - Domain settings, see **Domain Settings** section below.
  - Ignition install, see **Ignition Install** section below.
 
