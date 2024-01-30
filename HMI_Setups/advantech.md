@@ -8,7 +8,7 @@
 - Verify windows is activated and has the latest updates.
 - Change Computer Name
   - Client: IGC-\<BUILDING-AREA and SUB AREA (if exist)\>-\<INDEX\>
-    > Ex: **IGC-CONNERH-01.**
+    > Ex: **IGH-CONNERH-01.**
   - Server: IGS-\<BUILDING-AREA and SUB AREA (if exist)\>-\<INDEX\>
     > Ex: **IGS-CONNERH-01.**
 - BIOS settings, see **BIOS Settings** section below.
