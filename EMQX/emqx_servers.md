@@ -1,20 +1,14 @@
 # EMQX Server Node Main Content Steps
 ___
 1. Access the Proxmox hypervisor web interface using a web browser and enter the following url in the specified format:  
-    **https://Your-Servers-IP-Address:8006/** 
-2. If a base MariaDB template (**base-mdb-template**) is available, then see the 
-   [MariaDB Server Node Setup](#mariadb-server-node-setup) section, if not continue in **this section** to **step 3**.   
-3. If a base ubuntu template (**base-ubuntu-template**) is available, see the **mariadb_template** document then return 
-   to **this document** and jump to **step 2** in **this section**, if not continue in **this section** to **step 4**.  
-4. If no base Ubuntu template is available then see the **base-ubuntu build sheet** document which should be located under 
-   the **scada** share on the research **NAS**.  
-   1. Jump to step 3 in **this** section.
-5. Jump to the [Galera Cluster Setup](#galera-cluster-setup) section.
-6. Jump to the [Galera Arbitrator Setup](#galera-arbitrator-setup) section.
-7. Jump to the [MariaDB Backup Node Setup](#mariadb-backup-node-setup) section.  
-8. Create the MariaDB HAProxy servers using the **mariadb_haproxy** document. 
+    **https://PROXMOX-Server-IP-Address:8006/** 
+2. If a base ubuntu template (**base-ubuntu-template**) is available, then see the 
+   [EMQX Server Node Setup ](#emqx-server-node-setup) section, if not continue in **this section** to **step 3**.
+3. If no base Ubuntu template is available then see the **base-ubuntu build sheet** document which should be located under 
+   the **scada** share on the research **NAS**.
+4. Create the EMQX HAProxy servers using the **emqx_haproxy** document. 
 
-## EMQX Server Node Setup 
+## EMQX Server Node Setup
 ___
 1. Right-click and perform a full clone of the base Ubuntu template (**base-ubuntu-template**) and set the following settings below:  
 
@@ -62,58 +56,58 @@ ___
       ![](img/vm_options_start_at_boot.png)   
  
 3. Start the virtual machine using the **Start** button.  
-4. Update the hostname from **mdb-template** to **emq-XX** (where XX is the server number being creating) using the following command:
+4. Update and upgrade the operating system using the following commands:   
+   ```shell
+   sudo apt update && sudo apt upgrade -y
+   ```
+   **NOTE:** If prompted to select which daemon services should be restarted, then accept the default selections, 
+   press the **tab** key to navigate between the selections. 
+5. Update the hostname from **baseubuntu** to **emq-XX** (where XX is the server instance being created) using the following command:
    ```shell
    sudo nano /etc/hostname
    ```
-5. Update the hosts file using the following command:  
+6. Update the hosts file using the following command:  
    ```shell
    sudo nano /etc/hosts
    ```
    Remove, update, and uncomment the lines based on the image below with respect to the server being configured:  
     ```shell
     127.0.0.1 localhost
-    10.20.1.XX emq-XX.research.pemo emq-XX
+    10.20.XX.XX emq-XX.research.pemo emq-XX
     10.20.1.13 ad-01.research.pemo ad-01
     10.20.5.13 ad-02.research.pemo ad-02
     10.20.3.13 ad-03.research.pemo ad-03
     ```
    ![](img/server_ad_hosts_file.png)  
-   IP Address per node server should fall within the following subnets:  
+   **NOTE**: IP Address per node server should fall within the following subnets:  
    
    > emq-01 - 10.20.1.18/24 and gateway 10.20.1.1  
    > emq-02 - 10.20.5.18/24 and gateway 10.20.5.1  
    > emq-03 - 10.20.3.18/24 and gateway 10.20.3.1  
 
-6. Reset the machine ID using the following commands:
+7. Reset the machine ID using the following commands:
    ```shell
    sudo  rm  -f  /etc/machine-id /var/lib/dbus/machine-id
    sudo dbus-uuidgen --ensure=/etc/machine-id
    sudo dbus-uuidgen --ensure
    ```
-7. Regenerate ssh keys using the following commands:
+8. Regenerate ssh keys using the following commands:
    ```shell
    sudo rm /etc/ssh/ssh_host_*
    sudo dpkg-reconfigure openssh-server
    ```
-8. Change the network interface IP address from DHCP to Static by editing the **00-installer-config.yaml** file using the following command:   
+9. Change the network interface IP address from DHCP to Static by editing the **00-installer-config.yaml** file using the following command:   
     ```shell
     sudo nano /etc/netplan/00-installer-config.yaml
     ```
    Under the network interface key comment out the **dhcp4** key:value pair and then uncomment the remaining lines and configure the network settings accordingly see the image below:  
    ![](img/netplan_config_static_ip.png)  
-   IP Address per node server should fall within the following subnets:  
+   **NOTE**: IP Address per node server should fall within the following subnets:  
    
    > emq-01 - 10.20.1.18/24 and gateway 10.20.1.1  
    > emq-02 - 10.20.5.18/24 and gateway 10.20.5.1  
    > emq-03 - 10.20.3.18/24 and gateway 10.20.3.1  
    
-9. Update and upgrade the operating system using the following commands:   
-   ```shell
-   sudo apt update && sudo apt upgrade -y
-   ```
-   **NOTE:** If prompted to select which daemon services should be restarted, then accept the default selections, 
-   press the **tab** key to navigate between the selections. 
 10. Restart the machine using the following command:  
     ```shell
     sudo reboot
@@ -132,70 +126,8 @@ ___
     ```shell
     sudo ufw status numbered
     ```
-12. Install EMQX on Ubuntu using the following commands: 
-    Download the EMQX repository:  
-    ```shell
-    curl -s https://assets.emqx.com/scripts/install-emqx-deb.sh | sudo bash
-    ```
-    Install EMQX:
-    ```shell
-    sudo apt install emqx
-    ```
-    Start EMQX:
-    ```shell
-    sudo systemctl start emqx
-    ```
-13. Edit the main EMQX broker configuration file using the following command:  
-    ```shell 
-    sudo nano /etc/emqx/emqx.conf
-    ```
-    Overwrite the existing HOCON (Human-Optimized Config Object Notation) file with the following configuration:  
-    ```shell
-    node {
-      # XX represents the last two octets of the server where EMQX is being configured
-      name = "emqx@10.20.XX.XX"
-      cookie = "5u#k4UGe9nX#^9"
-      data_dir = "/var/lib/emqx"
-    }
-
-    cluster {
-      name = emqxcl
-      # emqx ctl cluster
-      discovery_strategy = static
-      static {seeds = ["emqx@10.20.1.18", "emqx@10.20.5.18", "emqx@10.20.5.18"]}
-      # Allow the network protocol TCP IPv4 for the nodes, meaning teh nodes will connect via TCP
-      proto_dist = inet_tcp
-    }
-    
-    authentication {
-      enable = true
-      backend = "mysql"
-      mechanism = "password_based"
-    
-      server = "mdb.research.pemo:3306"
-      username = "emqx"
-      database = "mqtt_user"
-      password = "T1ger$$$$$"
-      pool_size = 8
-
-      password_hash_algorithm {name = "sha256", salt_position = "suffix"}
-      query = "SELECT password_hash, salt FROM mqtt_user where username = ${username} LIMIT 1"
-      query_timeout = "5s"
-    }
-
-    dashboard {
-        listeners.http {bind = 18083}
-    }
-    listeners.tcp.default {
-      bind = "0.0.0.0:1883"
-      proxy_protocol = true
-      # Defaults to infinity
-      # max_connections = 1024000
-    }
-    ```
-    emqx ctl cluster status
-14. Goto any MariaDB server (mdb-01, mdb-02, or mdb-03) and create emqx database, user in the database, 
-    and finally create a user to access the database in the MariaDB shell, using the following commands:  
+12. Goto any MariaDB server (mdb-01, mdb-02, or mdb-03) and create an mqtt database, user to access the database, 
+    table in the database, and user in the table, using the following commands:  
     1. Access the MariaDB shell:  
        ```shell 
        sudo mariadb -u root -p
@@ -205,7 +137,7 @@ ___
        CREATE DATABASE mqtt;
        ```
     3. Create a user to access the **mqtt** database, using the following sql commands:   
-       1. Use the new, more secure password hashing method when creating or changing passwords.
+       1. Use the new more secure password hashing method when creating or changing passwords.
           ```mariadb 
           SET old_passwords=0;
           ```
@@ -251,25 +183,220 @@ ___
        ```mariadb
        SELECT * FROM mqtt.mqtt_user;
        ```
-18. Join the EMQX server to the Active Directory:
-    1. Edit the Samba configuration file using the following command:
+    **NOTE**: This only has to be executed once, which should have been when creating the first EMQX node.
+    If yes, skip **step 12** and continue to **step 13** below.   
+13. Install EMQX on Ubuntu using the following commands: 
+    1. Download the EMQX repository:  
+       ```shell
+       curl -s https://assets.emqx.com/scripts/install-emqx-deb.sh | sudo bash
+       ```
+    2. Install EMQX:
+       ```shell
+       sudo apt install emqx
+       ```
+    3. Start EMQX:
+       ```shell
+       sudo systemctl start emqx
+       ```
+    4. Reset the default administrative user password, to access the EMQX dashboard using the following command:  
+       ```shell
+       emqx ctl admins passwd admin <one_extra_rich_capital_pound>
+       ```
+       **NOTE**: Only reset the default administrative user password on the first node, once the remaining 
+       nodes join the cluster, the credentials will be propagated to the nodes.    
+    5. Access the EMQX dashboard and verify the login by using the domain name or IP address of the host where 
+       EMQX is being configured, using the url below:  
+
+       > **http://EMQX-Server-IP-Address:18083/** 
+       
+       **NOTE**: Only login with the updated credentials on the first node in the cluster, for the remaining nodes 
+       just verify the EMQX dashboard is accessible. 
+14. Edit the main EMQX broker configuration file using the following command:  
+    ```shell 
+    sudo nano /etc/emqx/emqx.conf
+    ```
+    Overwrite the existing configuration file with the configuration below, keep the existing comments and add the new
+    comments from below:  
+    ```shell
+    # Human-Optimized Config Object Notation (HOCON) File
+    # EMQX Docs for verison 5.4 can be found at https://www.emqx.io/docs/en/v5.4/
+    node {
+      # XX represents the last two octets where EMQX is being configured.
+      # Check the cluster.static.seeds parameter for the IP addresses of the nodes in the cluster. 
+      name = "emqx@10.20.XX.XX"
+      cookie = "5u#k4UGe9nX#^9"
+      data_dir = "/var/lib/emqx"
+    }
+
+    cluster {
+      name = emqxcl
+      # Auto clustering by static node list
+      discovery_strategy = static
+      static {seeds = ["emqx@10.20.1.18", "emqx@10.20.5.18", "emqx@10.20.3.18"]}
+      autoheal = true
+      autoclean = 5m
+      # Allow the nodes to connect via TCP IPv4
+      proto_dist = inet_tcp
+    }
+    
+    # MariaDB Authentication
+    mysql {
+      enable = true
+      backend = "mysql"
+      mechanism = "password_based"
+    
+      server = "mdb.research.pemo:3306"
+      database = "mqtt_user"
+      username = "emqx"
+      password = "T1ger$$$$$"
+      pool_size = 8
+
+      password_hash_algorithm.simple {name = "sha256", salt_position = "suffix"}
+      query = "SELECT password_hash, salt FROM mqtt_user where username = ${username} LIMIT 1"
+      query_timeout = "5s"
+    }
+
+    dashboard {
+        listeners.http {
+          bind = 18083
+          max_connections = 512
+          # proxy_header = true
+        }
+    }
+    
+    listeners.tcp.default {
+      bind = "0.0.0.0:1883"
+      proxy_protocol = true
+      # Defaults to infinity
+      # max_connections = 1024000
+    }
+    
+    log {
+      file_handlers.default {
+      enable = true
+      level = debug
+      file = "log/emqx.log"
+      rotation = 10
+      rotation_size = 50MB
+      formatter = json
+      }
+      console_handler {
+         enable = true
+         level = warning
+         formatter = json
+      }
+    }
+    ```
+    **NOTE**: The **node.name** should be the only parameter in the configuration file that should have to change per
+              node in the cluster.  
+15. Join the EMQX server to the Active Directory:  
+    1. Install the necessary Samba and Kerberos packages to integrate with a Windows OS network using the command below:  
+       ```shell
+       sudo apt install samba krb5-config krb5-user winbind libnss-winbind libpam-winbind -y 
+       ```
+       **NOTE**: When prompt for the kerberos default realm type **RESEARCH.PEMO** then highlight over **Ok** 
+       and press enter as in the image below:  
+       ![](img/default_kerberos_realm.png)  
+    2. Edit the Kerberos configuration file using the **nano** command:   
+       ```shell
+       sudo nano /etc/krb5.conf
+       ```
+       Add the following to the end of **[realms]** section:  
+       ```ini
+       RESEARCH.PEMO = {
+               kdc = AD-01.RESEARCH.PEMO
+               kdc = AD-02.RESEARCH.PEMO
+               kdc = AD-03.RESEARCH.PEMO
+               default_domain = RESEARCH.PEMO
+       }
+       ```
+       Add the following to the end of **[domain_realm]** section:  
+       ```ini
+       .research.pemo = .RESEARCH.PEMO
+       research.pemo = RESEARCH.PEMO
+       ```
+    3. Edit the Samba configuration file using the following command:
        ```shell 
        sudo nano /etc/samba/smb.conf
        ```
-       Update the value of the variable **netbios name** to the server node name being created in the **[global]** section. This 
-       should be the only variable that needs to be updated across each server node configuration file. See the image
-       below for clarification:  
-       ![](img/samba_server_config_file.png)  
-    2. Start and enable the **Samba** service using the following command:   
-       ```shell
-       sudo systemctl enable --now smbd
+    4. Add the following text to the **[global]** section:  
+       ```ini
+       workgroup = RESEARCH
+       netbios name = EMQX-01
+       realm = RESEARCH.PEMO
+       server string = 
+       security = ads
+       encrypt passwords = yes
+       password server = AD-01.RESEARCH.PEMO
+       log file = /var/log/samba/%m.log
+       max log size = 50
+       socket options = TCP_NODELAY SO_RCVBUF=8192 SO_SNDBUF=8192
+       preferred master = False
+       local master = No
+       domain master = No
+       dns proxy = No
+       idmap uid = 10000-20000
+       idmap gid = 10000-20000
+       winbind enum users = yes
+       winbind enum groups = yes
+       winbind use default domain = yes
+       client use spnego = yes
+       template shell = /bin/bash
+       template homedir = /home/%U
        ```
-    3. Join the machine to active directory domain using the following command:  
+       **NOTE 1**: Comment out any existing variable names that are similar to the names in the new configuration 
+       for the **[global]** section above.
+       Variables that are existing and need to be commented out:  
+       
+       >  **workgroup**  
+          **server string**  
+          **log file**  
+          **max log size**  
+       
+       **NOTE 2**: The **netbios name** parameter should match the name of server where the configuration file is 
+         being configured.
+       
+       `netbios name = EMQ-01 or EMQ-02, or EMQ-03`
+    
+    5. Edit the name service switch configuration file using the following command:
+       ```shell
+        sudo nano /etc/nsswitch.conf
+       ```
+       Replace the existing text in the file with the following: 
+       ```shell
+       passwd: compat winbind files systemd
+       group: compat winbind files systemd
+       shadow: compat winbind files
+       gshadow: files
+       
+       hosts: files dns
+       networks: files
+       
+       protocols: db files
+       services: db files
+       ethers: db files
+       rpc: db files
+       
+       netgroup: nis
+       ```
+    6. Edit the **sudoers (/etc/sudoers.tmp)** configuration using the command below:  
+       ```shell
+       sudo visudo
+       ```
+       Add the following line to the end of the file:  
+       ```text
+       %cansudo ALL=(ALL:ALL) ALL
+       ```
+    7. Join the machine to active directory domain using the following command:  
        ```shell
        sudo net ads join -S AD-01.RESEARCH.PEMO -U <user_in_ad_domain>
        ```
        **NOTE:** **<user_in_ad_domain>** - is a user who has privileges in the AD domain to add a computer.  
-    4. Start and enable the **winbind** service using the following command:  
+    8. Restart the **Samba** service using the following command:   
+       ```shell
+       sudo systemctl restart smbd
+       ```
+    9. Restart the **winbind** service using the following command:  
        ```shell
        sudo systemctl enable --now winbind
        ```
@@ -279,8 +406,8 @@ ___
        ```
        **NOTE:** This command will return a list of users from the domain that is connected via **winbind**.   
 
-    5. Verify AD login acceptance into the machine by logging out/in with your AD account.  
-19. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
+    10. Verify AD login acceptance into the machine by logging out/in with an AD account.  
+16. Install **SentinelOne** cybersecurity software to detect, protect, and remove malicious software.   
     > The following sub steps will explain how to install **SentinelOne** by mounting a NAS (network attached storage) 
       device, then accessing the installation files on the NAS. There are other methods for installation along with uninstalling, 
       and upgrading **SentinelOne**, if any other method is needed then see the **SentinelOne** setup document 
@@ -340,232 +467,5 @@ ___
        ```
     10. Open up the **SentinelOne** web management console and verify the machine joined the Sentinels endpoint list, check the image below:  
         ![](./img/sentinels_endpoints.png)  
-20. Repeat steps 1–21 above, for every MariaDB server node created.  
-21. Jump to step 5 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
-
-## Galera Cluster Setup
-Start the Galera Cluster by bootstrapping a server node (**mdb-01**), which makes the node the primary component 
-from which the other nodes in the cluster can sync. The MariaDB service should be stopped on every node that'll 
-join the cluster. The initialization of the cluster can technically be started on any server node available, 
-but typically the start of the cluster will be initialized from the first node (**mdb-01**).
-___
-1. Bootstrap **mdb-01** to form the new cluster using the following command:   
-   ```shell
-   sudo galera_new_cluster
-   ```
-   This will also automatically start the MariaDB service on **mdb-01**.
-2. Start and enable the MariaDB service on the other MariaDB server nodes using the following command:
-   ```shell
-   sudo systemctl enable --now mariadb
-   ```
-3. Verify the status and health of the MariaDB Galera Cluster using the following SQL queries:  
-   Check the cluster size:  
-   ```shell
-   mariadb -u root -p -e "SHOW STATUS LIKE 'wsrep_cluster_size'"
-   ```
-   Output should look similar to the image below:  
-   ![](img/wsrep_cluster_size.png)  
-   Check all the incoming node addresses (IP and port) that are part of the cluster:  
-   ```shell
-   mariadb -u root -p -e "SHOW STATUS LIKE 'wsrep_incoming_addresses'"  
-   ```
-   Output should look similar to the image below:  
-   ![](img/wsrep_incoming_addresses.png)  
-   **NOTE:** The commands above can be executed from any server node that has successfully joined the cluster.  
-4. Jump to step 6 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.   
-
-## Galera Arbitrator Setup
-This only needs to be configured on one of the server nodes, **mdb-03** will be selected since it's the odd number node, and the donor node. 
-___
-1. Install Galera Arbitrator package using the following command:  
-   ```shell
-    sudo apt install galera-arbitrator-4
-   ```
-2. Create the Galera Arbitrator configuration file using the following command:
-   ```shell
-    sudo nano /etc/garbd.cnf
-   ```
-   Paste the text into the configuration file:
-    ```ini
-    # Galera Arbitrator Configuration File
-    # ___
-    # group - set to the same value as the wsrep_cluster_name variable in the /etc/mysql/mariadb.conf.d/60-galera.cnf file.
-    # address - set to the same value as the wsrep_cluster_address variable in the /etc/mysql/mariadb.conf.d/60-galera.cnf file.
-    # sst - state transfer is when a node connects to another node in the cluster and attempts to bring its local database back 
-    # in sync with the cluster, and in a state snapshot transfer (sst) the donor uses a backup solution
-    # to copy its data directory to the joiner. When joiner completes the sst, it begins to process the write-sets that came in 
-    # during the transfer. Once it's in sync with the cluster, the cluster becomes operational again.
-    # donor - the node that'll use its local database to bring another nodes databases back in sync with the cluster.
-    # joiner - the node whose local database is out of sync with the other nodes in the cluster. 
-
-    group="mdbc-01"
-    address="gcomm://10.20.1.14:4567,10.20.5.14:4567,10.20.3.14:4567"
-    options="gmcast.listen_addr=tcp://0.0.0.0:4444"
-    donor="mdb-03"
-    sst="backup_rsync"
-    log="/var/log/garbd.log"
-    ```
-3. Creat the State Snapshot Transfer Backup Script using the following command:
-   ```shell
-    sudo nano /usr/bin/wsrep_sst_backup_rsync
-   ```
-   Paste the text into the configuration file:
-    ```shell
-    #!/bin/bash
-    # shebang (#!) at the top of the script to know which interpreter to use.
-    
-    # usage: garbd --cfg /etc/garbd.cnf
-    # garbd.cnf must specify the sst as backup_rsync
-    
-    backup_dir='/mdb_pool/mdb_backup'
-    backup_sub_dir='rsync_files'
-   
-    today=`date +"%Y%m%d"`
-    backup_today="galera-rsync-backup-$today"
-    
-    last_week=$(date -d "$date -7 days" +"%Y%m%d")
-    backup_last_week="galera-rsync-backup-$last_week.tgz"
-   
-    # Load common script
-    /usr/bin/wsrep_sst_common
-   
-    # Copy MariaDB data to temporary directory
-    rsync -a /mdb_pool/mdb_data $backup_dir/$backup_sub_dir
-   
-    # Archive the data directory
-    cd $backup_dir/$backup_sub_dir
-    tar -czf $backup_dir/$backup_today.tgz * --transform "s,^,$backup_today/,"
-   
-    # Copy the file to the nas 
-    cp $backup_dir/$backup_today.tgz /mnt/mdb_data_backups/nas
-   
-    # Delete last weeks archive
-    rm -f $backup_dir/$backup_last_week  
-    ```
-4. Make the file an executable using the following command:  
-    ```shell
-    sudo chmod +x /usr/bin/wsrep_sst_backup_rsync
-    ```
-5. Create the MariaDB ZFS backup file system using the following command:    
-    ```shell
-     sudo zfs create mdb_pool/mdb_backup
-    ```
-    Issue the following command to verify the creation of the ZFS file system:   
-    ```shell
-    sudo zfs list
-    ```
-   Allow full permissions (read, write, execute) for the owner, group and others.
-   ```shell
-    sudo chmod 777 /mdb_pool/mdb_backup
-   ```
-   Change the owner of the directory to a user named **mysql** in the **mysql** group.
-   ```shell
-    sudo chown mysql:mysql /mdb_pool/mdb_backup
-   ```
-6. Create a network file system (NFS) on the NAS (cnas-01.research.pemo) and give mdb-03 node access: 
-   1. Create a NFS directory on mdb-03 to share using the following commands:
-      ```shell
-      sudo mkdir -p /mnt/mdb_data_backups/nas
-      ```
-      Allow full permissions (read, write, execute) for the owner, group and others.
-      ```shell
-      sudo chmod 777 /mnt/mdb_data_backups/nas
-      ```
-      Change the owner of the directory to a user named **mysql** in the **mysql** group.
-      ```shell
-      sudo chown mysql:mysql /mnt/mdb_data_backups/nas
-      ```
-   2. Create the backup directory on the NAS using the web interface (recommended) or terminal:
-      1. Web Interface:
-         1. Open a web browser and enter the url [http://cnas-01.research.pemo:5000/](http://cnas-01.research.pemo:5000/).  
-         2. Open the **Control Panel > Share Folder**, create a new share folder with the name **mdb-backup** and set new share folder with the following settings:  
-            General Tab:  
-            ![](img/shared_folder_general.png)  
-            NFS Permissions Tab:  
-            ![](img/shared_folder_nfs_permissions.png)  
-            Encryption, Advanced, Permissions, and Advanced Permissions tabs can be left at the default settings.  
-      2. Terminal: 
-         ```shell
-         ssh automation@cnas-01.research.pemo
-         ```
-         Create the directory in **volume1** directory using the following commands:
-         ```shell
-         cd volume1
-         ```
-         ```shell
-         mkdir mdb-backup
-         ```
-   3. Install the NFS common packages on mdb-03 using the following command:
-      ```shell
-      sudo apt install nfs-common
-      ```
-   4. Mount the cnas-01 (external NFS share) on mdb-03 (local system) using the following command:
-      ```shell
-      sudo mount -t nfs cnas-01.research.pemo:/volume1/mdb-backup /mnt/mdb_data_backups/nas
-      ```
-      Verify the mount using the **df** command to display the filesystem type in a human-readable format.
-      ```shell
-      sudo df -Th
-      ```
-   5. Edit the file system table configuration file using the command below:   
-      ```shell 
-      sudo nano /etc/fstab
-      ```
-      Add the following text to the end of the file:  
-      ```shell
-      cnas-01.research.pemo:/volume1/mdb-backup /mnt/mdb_data_backups/nas nfs defaults 0 0  
-      ```
-   7. Reboot the machine and verify the mount stays attached using the **df** command:
-      ```shell
-      sudo df -Th
-      ```
-7. Test the **garbd** (Galera Arbitrator Daemon) configuration file using the following command:  
-   ```shell 
-   sudo garbd --cfg /etc/garbd.cnf
-   ```
-   Check that a MariaDB backup exists in the CNAS-01 share and local MariaDB ZFS by issuing the following commands:  
-   ```shell 
-   sudo ls -sh /mnt/mdb_data_backups/nas/
-   ```
-   ```shell 
-   sudo ls -sh /mdb_pool/mdb_backup/
-   ```
-   Remove the backups from the CNAS-01 share and local MariaDB ZFS after testing and verification,
-   by issuing the following commands:  
-   ```shell 
-   sudo rm -rf /mnt/mdb_data_backups/nas/*
-   ```
-   ```shell
-   sudo rm -rf /mdb_pool/mdb_backup/*
-   ```
-8. Edit the crontab using the following command:  
-   ```shell
-   sudo nano /etc/crontab
-   ```   
-   Place the following text to schedule **garbd** configuration file to run automatically at a specified time at the end of the file:  
-   ```shell
-   7 7 * * * root garbd --cfg /etc/garbd.cnf
-   ```
-   The crontab expression above is as followed:  
-   - `7 7 * * *` 
-     - minute (0-59) 
-     - hour (0-23) 
-     - day of month (1-31) 
-     - month (1-12)
-     - day of the week (0-7)
-     - "*" - is a wildcard that stands for "any"
-     - The expression runs at 7:07 AM every day
-   - **root** - indicates the user that the cron job should be run as. 
-   - **garbd --cfg /etc/garbd.cnf** - start the galera arbitrator daemon with the **garbd.cnf** configuration file.  
-   
-   Check the image below on how the text should be placed in the crontab file:  
-   ![](img/crontab_config_file.png)  
-   Restart the cron service using the command below:  
-   ```shell
-   sudo systemctl restart cron
-   ```
-9. Jump to step 7 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.  
-
-## MariaDB Backup Node Setup
-___
-1. Jump to step 8 in the [MariaDB Server Node Main Content Setup](#mariadb-server-node-main-content-steps) section.
+17. Repeat steps 1–21 above, for every MariaDB server node created.  
+18. Jump to step 4 in the [EMQX Server Node Main Content Setup](#emqx-server-node-main-content-steps) section.
